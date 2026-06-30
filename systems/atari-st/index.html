@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>TonyST</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0d0e16" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07080e;
+      --shell-top: #292b3f;
+      --shell-mid: #181a29;
+      --shell-low: #10121c;
+      --line: rgba(255,255,255,0.15);
+      --line-soft: rgba(255,255,255,0.08);
+      --text: #f7f8ff;
+      --muted: #aeb3c7;
+      --button: #36394f;
+      --button-2: #484c6a;
+      --shadow: rgba(0,0,0,0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% -12%, rgba(93, 101, 168, 0.26), transparent 44%),
+        linear-gradient(180deg, #11131e 0%, var(--bg) 76%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      touch-action: none;
+      overscroll-behavior: none;
+    }
+
+    body {
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: linear-gradient(180deg, var(--button-2), var(--button));
+      font: inherit;
+      font-weight: 850;
+      cursor: pointer;
+      user-select: none;
+      touch-action: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.11), 0 8px 20px var(--shadow);
+    }
+
+    button:active,
+    button.is-pressed {
+      transform: translateY(1px) scale(0.985);
+      filter: brightness(1.16);
+    }
+
+    .app {
+      width: min(100%, 520px);
+      height: 100svh;
+      margin: 0 auto;
+      padding: 7px 10px max(8px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 7px;
+    }
+
+    .topbar {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-kicker {
+      margin: 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.58rem;
+      line-height: 1.05;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.85rem, 5.9vw, 2.35rem);
+      letter-spacing: -0.06em;
+      line-height: 0.92;
+    }
+
+    .menu-button {
+      min-height: 40px;
+      padding: 0 15px;
+      border-radius: 18px;
+      white-space: nowrap;
+    }
+
+    .console {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 9px;
+      padding: 9px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025) 34%, rgba(0,0,0,0.18)),
+        linear-gradient(180deg, var(--shell-top), var(--shell-mid) 52%, var(--shell-low));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        inset 0 -16px 34px rgba(0,0,0,0.22),
+        0 18px 44px rgba(0,0,0,0.50);
+      overflow: hidden;
+    }
+
+    .screen-module {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 5px;
+      padding: 7px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #11131b, #08090e);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 24px rgba(0,0,0,0.34);
+    }
+
+    .screen-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 14px;
+      padding: 0 2px;
+    }
+
+    .speaker {
+      display: flex;
+      gap: 4px;
+      opacity: 0.45;
+    }
+
+    .speaker span {
+      width: 18px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.13);
+      display: block;
+    }
+
+    .status-led {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #a8ff94, #49b94a);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.34), 0 0 10px rgba(122,255,140,0.36);
+      flex: 0 0 auto;
+    }
+
+    .screen-wrap {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      aspect-ratio: 832 / 588;
+      height: auto;
+      min-height: 0;
+      max-height: min(43svh, 100%);
+      border-radius: 18px;
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        0 0 0 5px rgba(255,255,255,0.025);
+    }
+
+    .emulator-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #000;
+      transform-origin: 50% 50%;
+      transition: transform 0.16s ease;
+    }
+
+    .screen-wrap.is-zoom .emulator-frame {
+      transform: scale(1.045);
+    }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: grid;
+      place-content: center;
+      gap: 8px;
+      padding: 22px;
+      text-align: center;
+      background: #000;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+    }
+
+    .loading-overlay.is-hidden {
+      opacity: 0;
+    }
+
+    .loading-overlay strong {
+      font-size: 1.55rem;
+      letter-spacing: -0.04em;
+    }
+
+    .loading-overlay span {
+      color: var(--muted);
+    }
+
+    .screen-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      min-height: 16px;
+      padding: 0 2px;
+      color: rgba(228,230,245,0.72);
+      font-size: 0.68rem;
+    }
+
+    .screen-status span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .controls-module {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 7px;
+      padding: 0 3px 3px;
+    }
+
+    .main-controls {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(136px, 1fr) minmax(138px, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+
+    .left-bank,
+    .right-bank {
+      min-width: 0;
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+    }
+
+    .pad-label,
+    .button-label {
+      color: var(--muted);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .joystick {
+      position: relative;
+      width: min(36vw, 148px);
+      aspect-ratio: 1;
+      border-radius: 30px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,0.12) 0 10%, rgba(255,255,255,0.035) 11% 34%, rgba(0,0,0,0.24) 35% 100%),
+        linear-gradient(180deg, #363a52, #212436);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -14px 26px rgba(0,0,0,0.26), 0 10px 22px rgba(0,0,0,0.38);
+      touch-action: none;
+    }
+
+    .stick-cross {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.11);
+      border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .stick-cross.horizontal {
+      width: 65%;
+      height: 9px;
+    }
+
+    .stick-cross.vertical {
+      width: 9px;
+      height: 65%;
+    }
+
+    .stick-thumb {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 43%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(180deg, #f7f7ff, #c4c7dc);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), 0 9px 18px rgba(0,0,0,0.52);
+      pointer-events: none;
+    }
+
+    .action-cluster {
+      position: relative;
+      width: min(39vw, 164px);
+      height: min(35vw, 148px);
+    }
+
+    .action-button {
+      position: absolute;
+      display: grid;
+      place-content: center;
+      border-radius: 50%;
+      background: radial-gradient(circle at 48% 26%, #525779, #2c3047 66%, #202334 100%);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 11px 24px rgba(0,0,0,0.42);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .action-button strong {
+      display: block;
+      font-size: 1.14rem;
+      letter-spacing: -0.04em;
+    }
+
+    .action-button span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .action-a {
+      right: 0;
+      bottom: 0;
+      width: min(25vw, 108px);
+      aspect-ratio: 1;
+    }
+
+    .action-b {
+      left: 0;
+      top: 0;
+      width: min(19vw, 78px);
+      aspect-ratio: 1;
+    }
+
+    .center-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
+      padding-bottom: 1px;
+    }
+
+    .mini-pill {
+      min-height: 34px;
+      padding: 0 13px;
+      border-radius: 17px;
+      font-size: 0.80rem;
+      white-space: nowrap;
+    }
+
+    .hidden-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: rgba(0,0,0,0.56);
+      display: grid;
+      place-items: end center;
+      padding: 10px;
+    }
+
+    .drawer-backdrop[hidden],
+    .keyboard-panel[hidden] {
+      display: none;
+    }
+
+    .drawer {
+      width: min(100%, 520px);
+      max-height: min(82dvh, 680px);
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(34,36,52,0.98), rgba(10,11,16,0.98));
+      box-shadow: 0 18px 50px rgba(0,0,0,0.70);
+    }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .drawer-head h2 {
+      margin: 0;
+      font-size: 1.45rem;
+      letter-spacing: -0.04em;
+    }
+
+    .small-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border-radius: 16px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .menu-grid button {
+      min-height: 58px;
+      padding: 8px;
+      border-radius: 18px;
+    }
+
+    .notes {
+      margin-top: 14px;
+      color: var(--muted);
+      line-height: 1.36;
+    }
+
+    .notes summary {
+      color: var(--text);
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .credit {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.36;
+    }
+
+    .keyboard-panel {
+      position: fixed;
+      left: 8px;
+      right: 8px;
+      bottom: calc(env(safe-area-inset-bottom) + 8px);
+      z-index: 40;
+      max-height: 54dvh;
+      overflow: auto;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(30,30,44,0.98), rgba(8,8,12,0.98));
+      box-shadow: 0 18px 55px rgba(0,0,0,0.72);
+    }
+
+    .keyboard-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .key-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: none;
+    }
+
+    .key-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .key-row button {
+      flex: 0 0 auto;
+      min-width: 42px;
+      min-height: 42px;
+      padding: 0 10px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+    }
+
+    .key-row button.key-wide {
+      min-width: 74px;
+    }
+
+    .key-row button.key-space {
+      min-width: 160px;
+    }
+
+    .mode-active {
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14), 0 0 0 1px rgba(120,128,255,0.20), 0 8px 20px rgba(0,0,0,0.46);
+      background: linear-gradient(180deg, #505578, #383d59);
+    }
+
+    @media (max-height: 760px) {
+      .app {
+        gap: 5px;
+        padding-top: 5px;
+      }
+      .brand-kicker {
+        display: none;
+      }
+      h1 {
+        font-size: 1.75rem;
+      }
+      .topbar {
+        min-height: 36px;
+      }
+      .menu-button {
+        min-height: 36px;
+        border-radius: 16px;
+        padding: 0 13px;
+      }
+      .console {
+        padding: 7px;
+        border-radius: 27px;
+        gap: 7px;
+      }
+      .screen-module {
+        padding: 6px;
+        border-radius: 22px;
+      }
+      .screen-wrap {
+        max-height: 40svh;
+        border-radius: 16px;
+      }
+      .controls-module {
+        gap: 5px;
+      }
+      .joystick {
+        width: min(33vw, 134px);
+        border-radius: 26px;
+      }
+      .action-cluster {
+        width: min(37vw, 150px);
+        height: min(32vw, 132px);
+      }
+      .action-a {
+        width: min(23vw, 94px);
+      }
+      .action-b {
+        width: min(17vw, 68px);
+      }
+      .mini-pill {
+        min-height: 31px;
+        padding: 0 11px;
+        font-size: 0.76rem;
+      }
+      .screen-status {
+        font-size: 0.64rem;
+      }
+    }
+
+    @media (display-mode: standalone) {
+      .app {
+        height: 100dvh;
+      }
+    }
+  
+    /* TonyST v0.7.7, screen-first handheld override.
+       This removes the giant dead middle area and keeps the controls directly under the screen. */
+    .app {
+      width: 100% !important;
+      max-width: 520px !important;
+      padding: 5px 5px max(6px, env(safe-area-inset-bottom)) !important;
+      gap: 5px !important;
+    }
+
+    .topbar {
+      min-height: 36px !important;
+    }
+
+    .brand-kicker {
+      font-size: 0.52rem !important;
+      letter-spacing: 0.16em !important;
+    }
+
+    h1 {
+      font-size: clamp(1.72rem, 5.5vw, 2.18rem) !important;
+    }
+
+    .menu-button {
+      min-height: 36px !important;
+      padding: 0 13px !important;
+      border-radius: 17px !important;
+    }
+
+    .console {
+      grid-template-rows: auto auto !important;
+      align-content: start !important;
+      gap: 7px !important;
+      padding: 6px !important;
+      border-radius: 27px !important;
+      min-height: 0 !important;
+      height: auto !important;
+      max-height: calc(100svh - 48px - env(safe-area-inset-bottom)) !important;
+    }
+
+    .screen-module {
+      padding: 5px !important;
+      gap: 4px !important;
+      border-radius: 21px !important;
+      min-height: 0 !important;
+      align-self: start !important;
+    }
+
+    .screen-header {
+      height: 10px !important;
+      min-height: 10px !important;
+    }
+
+    .speaker span {
+      width: 15px !important;
+      height: 2px !important;
+    }
+
+    .status-led {
+      width: 10px !important;
+      height: 10px !important;
+      border-radius: 4px !important;
+    }
+
+    .screen-wrap {
+      width: 100% !important;
+      aspect-ratio: 832 / 588 !important;
+      height: auto !important;
+      max-height: none !important;
+      border-radius: 15px !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        0 0 0 3px rgba(255,255,255,0.025) !important;
+    }
+
+    .screen-wrap.is-zoom .emulator-frame {
+      transform: scale(1.07) !important;
+    }
+
+    .screen-wrap.is-fill .emulator-frame {
+      transform: translateY(-5.5%) scale(1.17) !important;
+    }
+
+    .screen-status {
+      min-height: 14px !important;
+      font-size: 0.62rem !important;
+      padding: 0 2px !important;
+    }
+
+    .controls-module {
+      grid-template-rows: auto auto !important;
+      gap: 5px !important;
+      padding: 0 2px 2px !important;
+      min-height: 0 !important;
+      align-self: start !important;
+    }
+
+    .main-controls {
+      align-items: center !important;
+      gap: 7px !important;
+    }
+
+    .pad-label,
+    .button-label {
+      font-size: 0.64rem !important;
+      letter-spacing: 0.16em !important;
+    }
+
+    .joystick {
+      width: min(32vw, 130px) !important;
+      border-radius: 24px !important;
+    }
+
+    .action-cluster {
+      width: min(35vw, 144px) !important;
+      height: min(30vw, 124px) !important;
+    }
+
+    .action-a {
+      width: min(22vw, 92px) !important;
+    }
+
+    .action-b {
+      width: min(16vw, 66px) !important;
+    }
+
+    .action-button strong {
+      font-size: 1.04rem !important;
+    }
+
+    .action-button span {
+      font-size: 0.64rem !important;
+      margin-top: 4px !important;
+    }
+
+    .center-pills {
+      gap: 6px !important;
+      padding-bottom: 0 !important;
+    }
+
+    .mini-pill {
+      min-height: 30px !important;
+      padding: 0 10px !important;
+      border-radius: 15px !important;
+      font-size: 0.74rem !important;
+    }
+
+    @media (max-height: 760px) {
+      .app {
+        padding-top: 4px !important;
+        gap: 4px !important;
+      }
+
+      .topbar {
+        min-height: 32px !important;
+      }
+
+      .brand-kicker {
+        display: none !important;
+      }
+
+      h1 {
+        font-size: 1.58rem !important;
+      }
+
+      .console {
+        padding: 5px !important;
+        gap: 5px !important;
+        border-radius: 24px !important;
+      }
+
+      .screen-module {
+        padding: 4px !important;
+        border-radius: 19px !important;
+      }
+
+      .screen-header {
+        display: none !important;
+      }
+
+      .screen-status {
+        font-size: 0.58rem !important;
+        min-height: 12px !important;
+      }
+
+      .joystick {
+        width: min(30vw, 118px) !important;
+        border-radius: 22px !important;
+      }
+
+      .action-cluster {
+        width: min(33vw, 130px) !important;
+        height: min(27vw, 108px) !important;
+      }
+
+      .action-a {
+        width: min(20vw, 82px) !important;
+      }
+
+      .action-b {
+        width: min(15vw, 58px) !important;
+      }
+
+      .mini-pill {
+        min-height: 27px !important;
+        padding: 0 8px !important;
+        font-size: 0.68rem !important;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <p class="brand-kicker">Atari ST on iPhone</p>
+        <h1>TonyST</h1>
+      </div>
+      <button class="menu-button" id="menuButton" type="button">☰ Menu</button>
+    </header>
+
+    <section class="console" aria-label="TonyST handheld console shell">
+      <section class="screen-module" aria-label="Atari ST screen">
+        <div class="screen-header" aria-hidden="true">
+          <div class="speaker"><span></span><span></span><span></span></div>
+          <div class="status-led"></div>
+        </div>
+
+        <div class="screen-wrap is-zoom" id="screenWrap">
+          <iframe id="emulatorFrame" class="emulator-frame" src="tonyst.html?v=tr1" title="Hatari Atari ST emulator" allow="fullscreen"></iframe>
+          <div id="loadingOverlay" class="loading-overlay">
+            <strong>TonyST</strong>
+            <span id="engineStatus">Starting Hatari WebAssembly</span>
+          </div>
+        </div>
+
+        <div class="screen-status">
+          <span id="engineLabel">Engine, starting</span>
+          <span id="fileLabel">Built in boot</span>
+        </div>
+      </section>
+
+      <section class="controls-module" aria-label="Controls">
+        <div class="main-controls">
+          <div class="left-bank">
+            <div class="pad-label" id="joystickLabel">Joystick</div>
+            <div class="joystick" id="joystick" role="application" aria-label="Joystick or mouse pad">
+              <span class="stick-cross horizontal"></span>
+              <span class="stick-cross vertical"></span>
+              <span class="stick-thumb" id="stickThumb"></span>
+            </div>
+          </div>
+
+          <div class="right-bank">
+            <div class="button-label">Buttons</div>
+            <div class="action-cluster">
+              <button class="action-button action-b" id="startButton" data-sequence="Start" type="button"><strong>B</strong><span>Start</span></button>
+              <button class="action-button action-a" id="fireButton" data-key="ControlRight" type="button"><strong>A</strong><span id="fireSubLabel">Fire</span></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="center-pills">
+          <button class="mini-pill mode-active" id="mouseModeButton" type="button">🕹 Joystick</button>
+          <button class="mini-pill" id="keyboardButton" type="button">⌨ Keyboard</button>
+          <button class="mini-pill" id="quickStartButtonVisible" type="button">Start</button>
+          <button class="mini-pill" id="resetButtonVisible" type="button">Reset</button>
+        </div>
+      </section>
+    </section>
+
+    <input id="diskInput" class="hidden-input" type="file" />
+
+    <div class="drawer-backdrop" id="menuBackdrop" hidden>
+      <aside class="drawer" aria-label="TonyST menu">
+        <div class="drawer-head">
+          <h2>TonyST Menu</h2>
+          <button class="small-button" id="closeMenuButton" type="button">Close</button>
+        </div>
+
+        <div class="menu-grid">
+          <button id="loadGameButton" type="button">Load Disk A</button>
+          <button id="loadDiskBButton" type="button">Load Disk B</button>
+          <button id="swapDisksButton" type="button">Swap A/B + Reset</button>
+          <button id="resetButton" type="button">Reset</button>
+          <button id="ejectDiskAButton" type="button">Eject Disk A</button>
+          <button id="ejectDiskBButton" type="button">Eject Disk B</button>
+          <button id="cleanBootButton" type="button">Clean boot</button>
+          <button id="fullscreenButton" type="button">Full screen</button>
+          <button id="zoomButton" type="button">Screen: Zoomed</button>
+          <button id="joyModeButton" type="button">Input: Gamepad</button>
+          <button id="quickStartButton" type="button">Send Start</button>
+          <button id="toggleMouseMenuButton" type="button">Switch to Mouse</button>
+        </div>
+
+        <details class="notes" open>
+          <summary>Quick help</summary>
+          <p>A is Fire in joystick mode, and left click in mouse mode. B and Start send the built in start sequence for awkward intros. Keyboard is there for Space, Enter, F keys and typing.</p>
+          <p>For multi disk games, load Disk 1 into A and Disk 2 into B, then reset. If a game asks you to swap disks, use Swap A/B + Reset. True live floppy swapping is not exposed by this browser Hatari build yet.</p>
+        </details>
+
+        <p class="credit">Uses the existing Hatari engine files in engine/hatari and the Mesmotronic browser Hatari build as the working base.</p>
+      </aside>
+    </div>
+
+    <div class="keyboard-panel" id="keyboardPanel" hidden>
+      <div class="keyboard-head">
+        <strong>Keyboard</strong>
+        <button class="small-button" id="closeKeyboardButton" type="button">Close</button>
+      </div>
+      <div class="key-row">
+        <button data-sequence="Start" type="button">Start</button>
+        <button data-key="Escape" type="button">Esc</button>
+        <button data-key="F1" type="button">F1</button>
+        <button data-key="F2" type="button">F2</button>
+        <button data-key="F3" type="button">F3</button>
+        <button data-key="F4" type="button">F4</button>
+        <button data-key="F5" type="button">F5</button>
+        <button data-key="F6" type="button">F6</button>
+        <button data-key="F7" type="button">F7</button>
+        <button data-key="F8" type="button">F8</button>
+        <button data-key="F9" type="button">F9</button>
+        <button data-key="F10" type="button">F10</button>
+      </div>
+      <div class="key-row">
+        <button data-key="Digit1" type="button">1</button>
+        <button data-key="Digit2" type="button">2</button>
+        <button data-key="Digit3" type="button">3</button>
+        <button data-key="Digit4" type="button">4</button>
+        <button data-key="Digit5" type="button">5</button>
+        <button data-key="Digit6" type="button">6</button>
+        <button data-key="Digit7" type="button">7</button>
+        <button data-key="Digit8" type="button">8</button>
+        <button data-key="Digit9" type="button">9</button>
+        <button data-key="Digit0" type="button">0</button>
+      </div>
+      <div class="key-row">
+        <button data-key="KeyQ" type="button">Q</button>
+        <button data-key="KeyW" type="button">W</button>
+        <button data-key="KeyE" type="button">E</button>
+        <button data-key="KeyR" type="button">R</button>
+        <button data-key="KeyT" type="button">T</button>
+        <button data-key="KeyY" type="button">Y</button>
+        <button data-key="KeyU" type="button">U</button>
+        <button data-key="KeyI" type="button">I</button>
+        <button data-key="KeyO" type="button">O</button>
+        <button data-key="KeyP" type="button">P</button>
+      </div>
+      <div class="key-row">
+        <button data-key="KeyA" type="button">A</button>
+        <button data-key="KeyS" type="button">S</button>
+        <button data-key="KeyD" type="button">D</button>
+        <button data-key="KeyF" type="button">F</button>
+        <button data-key="KeyG" type="button">G</button>
+        <button data-key="KeyH" type="button">H</button>
+        <button data-key="KeyJ" type="button">J</button>
+        <button data-key="KeyK" type="button">K</button>
+        <button data-key="KeyL" type="button">L</button>
+        <button class="key-wide" data-key="Enter" type="button">Enter</button>
+      </div>
+      <div class="key-row">
+        <button data-key="KeyZ" type="button">Z</button>
+        <button data-key="KeyX" type="button">X</button>
+        <button data-key="KeyC" type="button">C</button>
+        <button data-key="KeyV" type="button">V</button>
+        <button data-key="KeyB" type="button">B</button>
+        <button data-key="KeyN" type="button">N</button>
+        <button data-key="KeyM" type="button">M</button>
+        <button class="key-wide" data-key="Backspace" type="button">Back</button>
+      </div>
+      <div class="key-row">
+        <button data-key="ArrowLeft" type="button">←</button>
+        <button data-key="ArrowUp" type="button">↑</button>
+        <button data-key="ArrowDown" type="button">↓</button>
+        <button data-key="ArrowRight" type="button">→</button>
+        <button class="key-wide" data-key="ControlRight" type="button">Fire</button>
+        <button class="key-space" data-key="Space" type="button">Space</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+(() => {
+      const VERSION = "tr1";
+      const ORIGIN = window.location.origin;
+      const frame = document.getElementById("emulatorFrame");
+      const screenWrap = document.getElementById("screenWrap");
+      const overlay = document.getElementById("loadingOverlay");
+      const engineStatus = document.getElementById("engineStatus");
+      const engineLabel = document.getElementById("engineLabel");
+      const fileLabel = document.getElementById("fileLabel");
+      const diskInput = document.getElementById("diskInput");
+      const loadGameButton = document.getElementById("loadGameButton");
+      const loadDiskBButton = document.getElementById("loadDiskBButton");
+      const swapDisksButton = document.getElementById("swapDisksButton");
+      const ejectDiskAButton = document.getElementById("ejectDiskAButton");
+      const ejectDiskBButton = document.getElementById("ejectDiskBButton");
+      const resetButton = document.getElementById("resetButton");
+      const resetButtonVisible = document.getElementById("resetButtonVisible");
+      const cleanBootButton = document.getElementById("cleanBootButton");
+      const fullscreenButton = document.getElementById("fullscreenButton");
+      const menuButton = document.getElementById("menuButton");
+      const closeMenuButton = document.getElementById("closeMenuButton");
+      const menuBackdrop = document.getElementById("menuBackdrop");
+      const keyboardButton = document.getElementById("keyboardButton");
+      const keyboardPanel = document.getElementById("keyboardPanel");
+      const closeKeyboardButton = document.getElementById("closeKeyboardButton");
+      const joystick = document.getElementById("joystick");
+      const stickThumb = document.getElementById("stickThumb");
+      const fireButton = document.getElementById("fireButton");
+      const fireSubLabel = document.getElementById("fireSubLabel");
+      const modeButton = document.getElementById("mouseModeButton");
+      const toggleMouseMenuButton = document.getElementById("toggleMouseMenuButton");
+      const joyModeButton = document.getElementById("joyModeButton");
+      const quickStartButton = document.getElementById("quickStartButton");
+      const quickStartButtonVisible = document.getElementById("quickStartButtonVisible");
+      const zoomButton = document.getElementById("zoomButton");
+      const joystickLabel = document.getElementById("joystickLabel");
+      const startButton = document.getElementById("startButton");
+
+      let diskAFile = null;
+      let diskBFile = null;
+      let diskAName = "";
+      let diskBName = "";
+      let pendingDiskSlot = "A";
+      let childReady = false;
+      let bootToken = 0;
+      let joystickKeys = new Set();
+      let activeJoyTouchId = null;
+      let lastMouseTouch = null;
+      let controlMode = localStorage.getItem("tonyst-control-mode") || "joystick";
+      let joyInputMode = localStorage.getItem("tonyst-joy-input") || "gamepad";
+      let screenMode = localStorage.getItem("tonyst-screen-mode-v77") || "fill";
+      let currentJoy = { x: 0, y: 0, fire: false };
+      const heldButtonKeys = new Set();
+      const isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints || 0) > 0;
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations?.().then((regs) => regs.forEach((reg) => reg.unregister())).catch(() => {});
+      }
+      if ("caches" in window) {
+        caches.keys?.().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))).catch(() => {});
+      }
+
+      const status = (label, detail) => {
+        if (engineLabel) engineLabel.textContent = label;
+        if (detail && engineStatus) engineStatus.textContent = detail;
+      };
+
+      const shortName = (name, max = 28) => {
+        const text = String(name || "");
+        return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+      };
+
+      const setFileLabel = () => {
+        if (!fileLabel) return;
+        if (!diskAName && !diskBName) {
+          fileLabel.textContent = "Built in boot";
+          return;
+        }
+        const a = diskAName ? `A: ${shortName(diskAName, 22)}` : "A: Empty";
+        const b = diskBName ? `B: ${shortName(diskBName, 22)}` : "B: Empty";
+        fileLabel.textContent = `${a}  •  ${b}`;
+      };
+
+      const showOverlay = (detail) => {
+        overlay?.classList.remove("is-hidden");
+        status("Engine, starting", detail || "Starting Hatari WebAssembly");
+        setFileLabel();
+      };
+
+      const hideOverlay = () => overlay?.classList.add("is-hidden");
+
+      const closeMenu = () => { if (menuBackdrop) menuBackdrop.hidden = true; };
+      const openMenu = () => {
+        if (keyboardPanel) keyboardPanel.hidden = true;
+        if (menuBackdrop) menuBackdrop.hidden = false;
+      };
+
+      const reloadFrame = () => {
+        releaseJoystick();
+        releaseHeldButtons();
+        childReady = false;
+        bootToken += 1;
+        showOverlay((diskAName || diskBName) ? "Preparing selected disk setup" : "Starting clean boot");
+        if (frame) frame.src = `tonyst.html?v=${VERSION}&boot=${bootToken}`;
+      };
+
+      const sendStartToChild = async () => {
+        if (!frame?.contentWindow || !childReady) return;
+        const myToken = bootToken;
+        const payload = {
+          type: "tonyst-start",
+          version: VERSION,
+          bootToken: myToken,
+          diskAName: diskAName || "",
+          diskBName: diskBName || "",
+          joyMode: joyInputMode
+        };
+
+        try {
+          if (diskAFile) {
+            status("Engine, loading", "Reading Disk A");
+            payload.diskABytes = await diskAFile.arrayBuffer();
+          }
+          if (diskBFile) {
+            status("Engine, loading", "Reading Disk B");
+            payload.diskBBytes = await diskBFile.arrayBuffer();
+          }
+        } catch (_) {
+          status("File error", "Could not read the selected disk file");
+          return;
+        }
+
+        if (myToken !== bootToken) return;
+        const detail = (diskAName || diskBName) ? "Sending disks to Hatari" : "Starting Hatari";
+        status("Engine, loading", detail);
+        frame.contentWindow.postMessage(payload, ORIGIN);
+      };
+
+      const postToChild = (message) => {
+        try { frame?.contentWindow?.postMessage(message, ORIGIN); } catch (_) {}
+      };
+
+      const sendKey = (code, down) => postToChild({ type: "tonyst-key", code, down: Boolean(down) });
+      const sendSequence = (name) => postToChild({ type: "tonyst-sequence", name });
+      const sendJoy = () => postToChild({ type: "tonyst-joy", axisX: currentJoy.x, axisY: currentJoy.y, fire: currentJoy.fire });
+      const setJoyAxes = (x, y) => { currentJoy.x = x; currentJoy.y = y; sendJoy(); };
+      const setJoyFire = (down) => { currentJoy.fire = Boolean(down); sendJoy(); };
+      const sendMouseMove = (dx, dy) => postToChild({ type: "tonyst-mouse-move", dx, dy });
+      const sendMouseButton = (down, button = 0) => postToChild({ type: "tonyst-mouse-button", button, down: Boolean(down) });
+
+      function holdButtonKey(code) {
+        if (heldButtonKeys.has(code)) return;
+        heldButtonKeys.add(code);
+        sendKey(code, true);
+      }
+      function releaseButtonKey(code) {
+        if (!heldButtonKeys.has(code)) return;
+        heldButtonKeys.delete(code);
+        sendKey(code, false);
+      }
+      function releaseHeldButtons() {
+        Array.from(heldButtonKeys).forEach((code) => releaseButtonKey(code));
+        setJoyFire(false);
+        sendMouseButton(false, 0);
+        document.querySelectorAll(".is-pressed").forEach((button) => button.classList.remove("is-pressed"));
+      }
+
+      const setJoystickKeys = (nextKeys) => {
+        joystickKeys.forEach((code) => {
+          if (!nextKeys.has(code)) sendKey(code, false);
+        });
+        nextKeys.forEach((code) => {
+          if (!joystickKeys.has(code)) sendKey(code, true);
+        });
+        joystickKeys = nextKeys;
+        const axisX = nextKeys.has("ArrowLeft") ? -1 : nextKeys.has("ArrowRight") ? 1 : 0;
+        const axisY = nextKeys.has("ArrowUp") ? -1 : nextKeys.has("ArrowDown") ? 1 : 0;
+        setJoyAxes(axisX, axisY);
+      };
+
+      function releaseJoystick() {
+        setJoystickKeys(new Set());
+        activeJoyTouchId = null;
+        lastMouseTouch = null;
+        if (stickThumb) stickThumb.style.transform = "translate(-50%, -50%)";
+      }
+
+      const updateJoystickFromPoint = (clientX, clientY) => {
+        if (!joystick || !stickThumb) return;
+        const rect = joystick.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const rawX = clientX - cx;
+        const rawY = clientY - cy;
+        const max = rect.width * 0.29;
+        const distance = Math.hypot(rawX, rawY);
+        const scale = distance > max ? max / distance : 1;
+        const x = rawX * scale;
+        const y = rawY * scale;
+        const dead = rect.width * 0.12;
+        const next = new Set();
+        if (rawX < -dead) next.add("ArrowLeft");
+        if (rawX > dead) next.add("ArrowRight");
+        if (rawY < -dead) next.add("ArrowUp");
+        if (rawY > dead) next.add("ArrowDown");
+        stickThumb.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+        setJoystickKeys(next);
+      };
+
+      const updateMousePadFromPoint = (clientX, clientY, isStart = false) => {
+        if (!joystick || !stickThumb) return;
+        const rect = joystick.getBoundingClientRect();
+        if (isStart || !lastMouseTouch) {
+          lastMouseTouch = { x: clientX, y: clientY };
+          stickThumb.style.transform = "translate(-50%, -50%)";
+          return;
+        }
+        const dx = (clientX - lastMouseTouch.x) * 1.45;
+        const dy = (clientY - lastMouseTouch.y) * 1.45;
+        lastMouseTouch = { x: clientX, y: clientY };
+        if (Math.abs(dx) > 0 || Math.abs(dy) > 0) sendMouseMove(dx, dy);
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const max = rect.width * 0.22;
+        const rawX = Math.max(-max, Math.min(max, clientX - cx));
+        const rawY = Math.max(-max, Math.min(max, clientY - cy));
+        stickThumb.style.transform = `translate(calc(-50% + ${rawX}px), calc(-50% + ${rawY}px))`;
+      };
+
+      const applyControlMode = () => {
+        const mouse = controlMode === "mouse";
+        if (joystickLabel) joystickLabel.textContent = mouse ? "Mouse pad" : "Joystick";
+        if (fireSubLabel) fireSubLabel.textContent = mouse ? "Click" : "Fire";
+        if (modeButton) {
+          modeButton.textContent = mouse ? "🖱 Mouse" : "🕹 Joystick";
+          modeButton.classList.toggle("mode-active", true);
+        }
+        if (toggleMouseMenuButton) toggleMouseMenuButton.textContent = mouse ? "Switch to Joystick" : "Switch to Mouse";
+        releaseJoystick();
+        releaseHeldButtons();
+      };
+
+      const applyJoyModeLabel = () => {
+        if (joyModeButton) joyModeButton.textContent = `Input: ${joyInputMode === "gamepad" ? "Gamepad" : "Keys"}`;
+      };
+
+      const applyScreenMode = () => {
+        const fill = screenMode === "fill";
+        const zoomed = screenMode === "zoom";
+        screenWrap?.classList.toggle("is-fill", fill);
+        screenWrap?.classList.toggle("is-zoom", zoomed);
+        if (zoomButton) {
+          zoomButton.textContent = fill ? "Screen: Fill" : zoomed ? "Screen: Zoomed" : "Screen: Fit";
+        }
+      };
+
+      const findTouch = (touchList, id) => Array.from(touchList || []).find((touch) => touch.identifier === id);
+
+      window.addEventListener("message", (event) => {
+        if (event.origin !== ORIGIN) return;
+        const data = event.data || {};
+        if (data.type === "tonyst-ready") {
+          childReady = true;
+          sendStartToChild();
+        }
+        if (data.type === "tonyst-status") status(data.label || "Engine, loading", data.detail || "Hatari working");
+        if (data.type === "tonyst-loaded") {
+          status("Engine, loaded", data.detail || "Hatari ready");
+          setFileLabel();
+          hideOverlay();
+        }
+        if (data.type === "tonyst-error") {
+          status(data.label || "Engine, error", data.detail || "Hatari error");
+          setTimeout(hideOverlay, 1400);
+        }
+      });
+
+      frame?.addEventListener("load", () => { window.setTimeout(sendStartToChild, 120); });
+
+      menuButton?.addEventListener("click", openMenu);
+      closeMenuButton?.addEventListener("click", closeMenu);
+      menuBackdrop?.addEventListener("click", (event) => { if (event.target === menuBackdrop) closeMenu(); });
+
+      keyboardButton?.addEventListener("click", () => {
+        closeMenu();
+        keyboardPanel.hidden = !keyboardPanel.hidden;
+      });
+      closeKeyboardButton?.addEventListener("click", () => { keyboardPanel.hidden = true; });
+
+      const toggleControlMode = () => {
+        controlMode = controlMode === "mouse" ? "joystick" : "mouse";
+        localStorage.setItem("tonyst-control-mode", controlMode);
+        applyControlMode();
+        closeMenu();
+      };
+
+      modeButton?.addEventListener("click", toggleControlMode);
+      toggleMouseMenuButton?.addEventListener("click", toggleControlMode);
+
+      joyModeButton?.addEventListener("click", () => {
+        closeMenu();
+        joyInputMode = joyInputMode === "gamepad" ? "keys" : "gamepad";
+        localStorage.setItem("tonyst-joy-input", joyInputMode);
+        applyJoyModeLabel();
+        reloadFrame();
+      });
+
+      quickStartButton?.addEventListener("click", () => { closeMenu(); sendSequence("Start"); });
+      quickStartButtonVisible?.addEventListener("click", () => sendSequence("Start"));
+
+      const chooseDiskFile = (slot) => {
+        closeMenu();
+        pendingDiskSlot = slot;
+        diskInput?.click();
+      };
+
+      loadGameButton?.addEventListener("click", () => chooseDiskFile("A"));
+      loadDiskBButton?.addEventListener("click", () => chooseDiskFile("B"));
+
+      swapDisksButton?.addEventListener("click", () => {
+        closeMenu();
+        const oldAFile = diskAFile;
+        const oldAName = diskAName;
+        diskAFile = diskBFile;
+        diskAName = diskBName;
+        diskBFile = oldAFile;
+        diskBName = oldAName;
+        reloadFrame();
+      });
+
+      ejectDiskAButton?.addEventListener("click", () => {
+        closeMenu();
+        diskAFile = null;
+        diskAName = "";
+        reloadFrame();
+      });
+
+      ejectDiskBButton?.addEventListener("click", () => {
+        closeMenu();
+        diskBFile = null;
+        diskBName = "";
+        reloadFrame();
+      });
+      resetButton?.addEventListener("click", () => { closeMenu(); reloadFrame(); });
+      resetButtonVisible?.addEventListener("click", () => reloadFrame());
+      cleanBootButton?.addEventListener("click", () => {
+        closeMenu();
+        diskAFile = null;
+        diskBFile = null;
+        diskAName = "";
+        diskBName = "";
+        if (diskInput) diskInput.value = "";
+        reloadFrame();
+      });
+
+      fullscreenButton?.addEventListener("click", async () => {
+        closeMenu();
+        try {
+          await (frame.requestFullscreen?.() || frame.webkitRequestFullscreen?.());
+        } catch (_) {
+          try { await document.documentElement.requestFullscreen?.(); } catch (_) {}
+        }
+      });
+
+      zoomButton?.addEventListener("click", () => {
+        closeMenu();
+        screenMode = screenMode === "fill" ? "fit" : screenMode === "fit" ? "zoom" : "fill";
+        localStorage.setItem("tonyst-screen-mode-v77", screenMode);
+        applyScreenMode();
+      });
+
+      diskInput?.addEventListener("change", () => {
+        const file = diskInput.files?.[0];
+        if (!file) return;
+        if (pendingDiskSlot === "B") {
+          diskBFile = file;
+          diskBName = file.name;
+        } else {
+          diskAFile = file;
+          diskAName = file.name;
+        }
+        if (diskInput) diskInput.value = "";
+        reloadFrame();
+      });
+
+      if (isTouchDevice && joystick) {
+        joystick.addEventListener("touchstart", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          keyboardPanel.hidden = true;
+          if (activeJoyTouchId !== null || !event.changedTouches.length) return;
+          const touch = event.changedTouches[0];
+          activeJoyTouchId = touch.identifier;
+          if (controlMode === "mouse") updateMousePadFromPoint(touch.clientX, touch.clientY, true);
+          else updateJoystickFromPoint(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        joystick.addEventListener("touchmove", (event) => {
+          if (activeJoyTouchId === null) return;
+          const touch = findTouch(event.changedTouches, activeJoyTouchId) || findTouch(event.touches, activeJoyTouchId);
+          if (!touch) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (controlMode === "mouse") updateMousePadFromPoint(touch.clientX, touch.clientY, false);
+          else updateJoystickFromPoint(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        ["touchend", "touchcancel"].forEach((type) => {
+          joystick.addEventListener(type, (event) => {
+            if (activeJoyTouchId === null) return;
+            const touch = findTouch(event.changedTouches, activeJoyTouchId);
+            if (!touch) return;
+            event.preventDefault();
+            event.stopPropagation();
+            releaseJoystick();
+          }, { passive: false });
+        });
+      } else if (joystick) {
+        joystick.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          keyboardPanel.hidden = true;
+          joystick.setPointerCapture?.(event.pointerId);
+          if (controlMode === "mouse") updateMousePadFromPoint(event.clientX, event.clientY, true);
+          else updateJoystickFromPoint(event.clientX, event.clientY);
+        });
+        joystick.addEventListener("pointermove", (event) => {
+          if (!joystick.hasPointerCapture?.(event.pointerId)) return;
+          event.preventDefault();
+          if (controlMode === "mouse") updateMousePadFromPoint(event.clientX, event.clientY, false);
+          else updateJoystickFromPoint(event.clientX, event.clientY);
+        });
+        ["pointerup", "pointercancel", "lostpointercapture"].forEach((type) => {
+          joystick.addEventListener(type, (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            releaseJoystick();
+          });
+        });
+      }
+
+      const pressControlButton = (button, down) => {
+        const code = button.dataset.key;
+        const sequence = button.dataset.sequence;
+
+        if (sequence && down) {
+          sendSequence(sequence);
+          return;
+        }
+
+        if (button.id === "fireButton") {
+          if (controlMode === "mouse") {
+            sendMouseButton(down, 0);
+            return;
+          }
+          setJoyFire(down);
+          if (code) sendKey(code, down);
+          return;
+        }
+
+        if (code) sendKey(code, down);
+      };
+
+      document.querySelectorAll("[data-key], [data-sequence]").forEach((button) => {
+        const code = button.dataset.key;
+        const sequence = button.dataset.sequence;
+        if (!code && !sequence) return;
+
+        if (isTouchDevice) {
+          const activeTouches = new Set();
+          button.addEventListener("touchstart", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if ((button.id === "fireButton" || sequence) && keyboardPanel) keyboardPanel.hidden = true;
+            Array.from(event.changedTouches).forEach((touch) => activeTouches.add(touch.identifier));
+            button.classList.add("is-pressed");
+            pressControlButton(button, true);
+          }, { passive: false });
+
+          const touchEnd = (event) => {
+            let changed = false;
+            Array.from(event.changedTouches).forEach((touch) => {
+              if (activeTouches.delete(touch.identifier)) changed = true;
+            });
+            if (!changed) return;
+            event.preventDefault();
+            event.stopPropagation();
+            if (activeTouches.size === 0) {
+              button.classList.remove("is-pressed");
+              pressControlButton(button, false);
+            }
+          };
+
+          button.addEventListener("touchend", touchEnd, { passive: false });
+          button.addEventListener("touchcancel", touchEnd, { passive: false });
+        } else {
+          const down = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if ((button.id === "fireButton" || sequence) && keyboardPanel) keyboardPanel.hidden = true;
+            button.classList.add("is-pressed");
+            pressControlButton(button, true);
+          };
+          const up = (event) => {
+            event.preventDefault();
+            button.classList.remove("is-pressed");
+            pressControlButton(button, false);
+          };
+          button.addEventListener("pointerdown", down);
+          button.addEventListener("pointerup", up);
+          button.addEventListener("pointercancel", up);
+          button.addEventListener("pointerleave", up);
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          releaseJoystick();
+          releaseHeldButtons();
+        }
+      });
+
+      applyControlMode();
+      applyJoyModeLabel();
+      applyScreenMode();
+      setFileLabel();
+      showOverlay("Starting Hatari WebAssembly");
+    })();
+  
+  </script>
+</body>
+</html>

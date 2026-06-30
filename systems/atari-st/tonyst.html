@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>TonyST Hatari</title>
+  <style>
+    * { outline: none; box-sizing: border-box; }
+    html, body, canvas { margin: 0; padding: 0; width: 100%; height: 100%; }
+    html, body { overflow: hidden; background: #000; }
+    body { display: flex; justify-content: center; align-items: center; }
+    canvas {
+      border: 0;
+      background: #000;
+      cursor: none;
+      image-rendering: pixelated;
+      touch-action: none;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .fullscreen canvas {
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      height: auto;
+      max-width: calc(100dvh * 7 / 5);
+      max-height: 100dvh;
+    }
+    .boot-message {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      gap: 8px;
+      text-align: center;
+      color: white;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #000;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .boot-message span { color: #aaaab6; }
+    .boot-message.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="0" width="832" height="588"></canvas>
+  <div id="bootMessage" class="boot-message"><strong>TonyST</strong><span>Waiting for loader</span></div>
+
+  <script>
+    (() => {
+      const VERSION = "tr1";
+      const ENGINE_DIR = "../../engine/hatari";
+      const ORIGIN = window.location.origin;
+      const canvas = document.getElementById("canvas");
+      const bootMessage = document.getElementById("bootMessage");
+      let started = false;
+      let joyMode = "gamepad";
+      const virtualPad = {
+        axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 16 }, () => ({ pressed: false, touched: false, value: 0 })),
+        timestamp: 0,
+      };
+      let virtualMouse = { x: 416, y: 294, down: false };
+
+      function cloneButton(button) {
+        return { pressed: Boolean(button.pressed), touched: Boolean(button.touched), value: Number(button.value || 0) };
+      }
+      function makeVirtualGamepad() {
+        virtualPad.timestamp = performance.now();
+        return {
+          id: "TonyST Virtual Joystick",
+          index: 0,
+          connected: true,
+          mapping: "standard",
+          timestamp: virtualPad.timestamp,
+          axes: virtualPad.axes.slice(),
+          buttons: virtualPad.buttons.map(cloneButton),
+        };
+      }
+      function installVirtualGamepad() {
+        try {
+          Object.defineProperty(navigator, "getGamepads", {
+            configurable: true,
+            value: () => [makeVirtualGamepad()],
+          });
+        } catch (_) {
+          try { navigator.getGamepads = () => [makeVirtualGamepad()]; } catch (_) {}
+        }
+        setTimeout(() => {
+          try {
+            const event = new Event("gamepadconnected");
+            Object.defineProperty(event, "gamepad", { get: () => makeVirtualGamepad() });
+            window.dispatchEvent(event);
+          } catch (_) {}
+        }, 250);
+      }
+      installVirtualGamepad();
+
+      const keyMap = {
+        Space: { key: " ", code: "Space", keyCode: 32, location: 0 },
+        Enter: { key: "Enter", code: "Enter", keyCode: 13, location: 0 },
+        Backspace: { key: "Backspace", code: "Backspace", keyCode: 8, location: 0 },
+        Escape: { key: "Escape", code: "Escape", keyCode: 27, location: 0 },
+        Tab: { key: "Tab", code: "Tab", keyCode: 9, location: 0 },
+        ArrowUp: { key: "ArrowUp", code: "ArrowUp", keyCode: 38, location: 0 },
+        ArrowDown: { key: "ArrowDown", code: "ArrowDown", keyCode: 40, location: 0 },
+        ArrowLeft: { key: "ArrowLeft", code: "ArrowLeft", keyCode: 37, location: 0 },
+        ArrowRight: { key: "ArrowRight", code: "ArrowRight", keyCode: 39, location: 0 },
+        ControlRight: { key: "Control", code: "ControlRight", keyCode: 17, location: 2, ctrlKey: true },
+        ControlLeft: { key: "Control", code: "ControlLeft", keyCode: 17, location: 1, ctrlKey: true },
+        ShiftLeft: { key: "Shift", code: "ShiftLeft", keyCode: 16, location: 1, shiftKey: true },
+        ShiftRight: { key: "Shift", code: "ShiftRight", keyCode: 16, location: 2, shiftKey: true },
+      };
+      for (let i = 1; i <= 10; i += 1) keyMap[`F${i}`] = { key: `F${i}`, code: `F${i}`, keyCode: 111 + i };
+      for (let i = 0; i <= 9; i += 1) keyMap[`Digit${i}`] = { key: String(i), code: `Digit${i}`, keyCode: 48 + i };
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach((letter) => {
+        keyMap[`Key${letter}`] = { key: letter.toLowerCase(), code: `Key${letter}`, keyCode: letter.charCodeAt(0) };
+      });
+
+      const sendParent = (type, label, detail) => {
+        try { parent.postMessage({ type, label, detail }, ORIGIN); } catch (_) {}
+      };
+      const setBootMessage = (text) => {
+        const span = bootMessage?.querySelector("span");
+        if (span && text) span.textContent = text;
+      };
+      const getKeyInfo = (code) => keyMap[code] || { key: code, code, keyCode: 0 };
+
+      const makeKeyboardEvent = (type, info) => {
+        const charCode = type === "keypress" && info.key && info.key.length === 1 ? info.key.charCodeAt(0) : 0;
+        const event = new KeyboardEvent(type, {
+          key: info.key,
+          code: info.code,
+          location: info.location || 0,
+          ctrlKey: Boolean(info.ctrlKey),
+          shiftKey: Boolean(info.shiftKey),
+          altKey: Boolean(info.altKey),
+          metaKey: Boolean(info.metaKey),
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+        });
+        const legacy = {
+          key: info.key,
+          code: info.code,
+          keyCode: info.keyCode || 0,
+          which: info.keyCode || 0,
+          charCode,
+          location: info.location || 0,
+          ctrlKey: Boolean(info.ctrlKey),
+          shiftKey: Boolean(info.shiftKey),
+          altKey: Boolean(info.altKey),
+          metaKey: Boolean(info.metaKey),
+        };
+        Object.entries(legacy).forEach(([name, value]) => {
+          try { Object.defineProperty(event, name, { get: () => value }); } catch (_) {}
+        });
+        return event;
+      };
+
+      const dispatchKeyboard = (target, type, info) => {
+        if (!target) return;
+        target.dispatchEvent(makeKeyboardEvent(type, info));
+      };
+
+      const makePlainEvent = (type, fields) => ({
+        type,
+        timeStamp: performance.now(),
+        bubbles: true,
+        cancelable: true,
+        defaultPrevented: false,
+        preventDefault() { this.defaultPrevented = true; },
+        stopPropagation() {},
+        stopImmediatePropagation() {},
+        target: canvas,
+        currentTarget: canvas,
+        ...fields,
+      });
+
+      const callJSEventHandlers = (type, event) => {
+        const handlers = Array.isArray(window.JSEvents?.eventHandlers) ? window.JSEvents.eventHandlers : [];
+        const matching = handlers.filter((handler) => handler.eventTypeString === type);
+        if (!matching.length) return false;
+        matching.forEach((handler) => {
+          try { handler.eventListenerFunc(event); } catch (err) { console.warn("[TonyST input]", type, err); }
+        });
+        return true;
+      };
+
+      const sendKey = (code, down) => {
+        const info = getKeyInfo(code);
+        const type = down ? "keydown" : "keyup";
+        const plain = makePlainEvent(type, {
+          key: info.key,
+          code: info.code,
+          location: info.location || 0,
+          ctrlKey: Boolean(info.ctrlKey),
+          shiftKey: Boolean(info.shiftKey),
+          altKey: Boolean(info.altKey),
+          metaKey: Boolean(info.metaKey),
+          repeat: false,
+          charCode: 0,
+          keyCode: info.keyCode || 0,
+          which: info.keyCode || 0,
+          char: "",
+          locale: "",
+        });
+
+        try { window.focus(); } catch (_) {}
+        try { canvas.focus(); } catch (_) {}
+
+        const direct = callJSEventHandlers(type, plain);
+        if (!direct) [window, document, document.body, canvas].forEach((target) => dispatchKeyboard(target, type, info));
+
+        if (down && info.key && info.key.length === 1) {
+          const press = makePlainEvent("keypress", {
+            key: info.key,
+            code: info.code,
+            location: info.location || 0,
+            ctrlKey: Boolean(info.ctrlKey),
+            shiftKey: Boolean(info.shiftKey),
+            altKey: Boolean(info.altKey),
+            metaKey: Boolean(info.metaKey),
+            repeat: false,
+            charCode: info.key.charCodeAt(0),
+            keyCode: info.keyCode || info.key.charCodeAt(0),
+            which: info.keyCode || info.key.charCodeAt(0),
+            char: info.key,
+            locale: "",
+          });
+          if (!callJSEventHandlers("keypress", press)) [window, document, document.body, canvas].forEach((target) => dispatchKeyboard(target, "keypress", info));
+        }
+      };
+
+      const tapKey = (code, duration = 85) => {
+        sendKey(code, true);
+        setTimeout(() => sendKey(code, false), duration);
+      };
+      const sendStartSequence = () => {
+        ["ControlRight", "Space", "Enter", "F1", "Digit1"].forEach((code, index) => {
+          setTimeout(() => tapKey(code, 80), index * 115);
+        });
+      };
+
+      const updateVirtualJoy = (axisX = 0, axisY = 0, fire = false) => {
+        virtualPad.axes[0] = Math.max(-1, Math.min(1, Number(axisX) || 0));
+        virtualPad.axes[1] = Math.max(-1, Math.min(1, Number(axisY) || 0));
+        virtualPad.buttons[0] = { pressed: Boolean(fire), touched: Boolean(fire), value: fire ? 1 : 0 };
+        virtualPad.timestamp = performance.now();
+      };
+
+      const mousePlainEvent = (type, fields) => makePlainEvent(type, {
+        screenX: fields.clientX,
+        screenY: fields.clientY,
+        clientX: fields.clientX,
+        clientY: fields.clientY,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        button: fields.button || 0,
+        buttons: fields.buttons || 0,
+        movementX: fields.movementX || 0,
+        movementY: fields.movementY || 0,
+      });
+
+      const emitMouse = (type, opts = {}) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = rect.left + virtualMouse.x;
+        const clientY = rect.top + virtualMouse.y;
+        const event = mousePlainEvent(type, {
+          clientX,
+          clientY,
+          button: opts.button || 0,
+          buttons: opts.buttons || (virtualMouse.down ? 1 : 0),
+          movementX: opts.movementX || 0,
+          movementY: opts.movementY || 0,
+        });
+        if (!callJSEventHandlers(type, event)) {
+          try {
+            canvas.dispatchEvent(new MouseEvent(type, {
+              bubbles: true,
+              cancelable: true,
+              clientX,
+              clientY,
+              button: opts.button || 0,
+              buttons: opts.buttons || (virtualMouse.down ? 1 : 0),
+              movementX: opts.movementX || 0,
+              movementY: opts.movementY || 0,
+            }));
+          } catch (_) {}
+        }
+      };
+
+      const moveVirtualMouse = (dx, dy) => {
+        const rect = canvas.getBoundingClientRect();
+        const oldX = virtualMouse.x;
+        const oldY = virtualMouse.y;
+        virtualMouse.x = Math.max(0, Math.min(rect.width || 832, virtualMouse.x + Number(dx || 0)));
+        virtualMouse.y = Math.max(0, Math.min(rect.height || 588, virtualMouse.y + Number(dy || 0)));
+        emitMouse("mousemove", { movementX: virtualMouse.x - oldX, movementY: virtualMouse.y - oldY, buttons: virtualMouse.down ? 1 : 0 });
+      };
+
+      const setVirtualMouseButton = (down, button = 0) => {
+        virtualMouse.down = Boolean(down);
+        emitMouse(down ? "mousedown" : "mouseup", { button, buttons: down ? 1 : 0 });
+      };
+
+      const safeName = (name, fallback) => {
+        const cleaned = String(name || fallback).replace(/[^a-zA-Z0-9._-]/g, "_");
+        return cleaned || fallback;
+      };
+
+      function startHatari(startData = {}) {
+        if (started) return;
+        started = true;
+
+        const hasDiskA = startData.diskABytes && startData.diskABytes.byteLength;
+        const hasDiskB = startData.diskBBytes && startData.diskBBytes.byteLength;
+        // Backwards compatibility for older parent pages.
+        const legacyDisk = startData.diskBytes && startData.diskBytes.byteLength;
+        const diskAFilename = safeName(startData.diskAName || startData.diskName || "disk_a.st", "disk_a.st");
+        const diskBFilename = safeName(startData.diskBName || "disk_b.st", "disk_b.st");
+        const diskAPath = `/tonyst/A_${diskAFilename}`;
+        const diskBPath = `/tonyst/B_${diskBFilename}`;
+        joyMode = startData.joyMode || "gamepad";
+        updateVirtualJoy(0, 0, false);
+
+        const args = [
+          "--desktop", "false",
+          "--machine", "ste",
+          "--statusbar", "false",
+          "--memsize", "4",
+          "--cpuclock", "16",
+        ];
+
+        if (joyMode === "keys") args.push("--joystick", "1", "--joy1", "keys");
+        else args.push("--joy1", "real");
+
+        if (hasDiskA || legacyDisk) args.push("--disk-a", diskAPath);
+        else args.push("-d", "/share/hatari/fs/");
+        if (hasDiskB) args.push("--disk-b", diskBPath);
+
+        const moduleObject = {
+          preRun: [function () {
+            if (!(hasDiskA || hasDiskB || legacyDisk)) return;
+            try {
+              try { window.Module.FS_createPath("/", "tonyst", true, true); } catch (_) {}
+              if (hasDiskA || legacyDisk) {
+                const bytes = hasDiskA ? startData.diskABytes : startData.diskBytes;
+                window.Module.FS_createDataFile("/tonyst", `A_${diskAFilename}`, new Uint8Array(bytes), true, true, true);
+              }
+              if (hasDiskB) {
+                window.Module.FS_createDataFile("/tonyst", `B_${diskBFilename}`, new Uint8Array(startData.diskBBytes), true, true, true);
+              }
+              const mounted = [hasDiskA || legacyDisk ? `A: ${startData.diskAName || startData.diskName || diskAFilename}` : "", hasDiskB ? `B: ${startData.diskBName || diskBFilename}` : ""].filter(Boolean).join(" • ");
+              sendParent("tonyst-status", "Engine, loading", mounted ? `Mounted ${mounted}` : "Disks mounted");
+            } catch (err) {
+              sendParent("tonyst-error", "Disk error", `Could not mount disk: ${err?.message || err}`);
+            }
+          }],
+          postRun: [function () {
+            bootMessage?.classList.add("hidden");
+            const rect = canvas.getBoundingClientRect();
+            virtualMouse = { x: (rect.width || 832) / 2, y: (rect.height || 588) / 2, down: false };
+            const loadedDetail = (hasDiskA || hasDiskB || legacyDisk)
+              ? [hasDiskA || legacyDisk ? `A: ${startData.diskAName || startData.diskName || diskAFilename}` : "", hasDiskB ? `B: ${startData.diskBName || diskBFilename}` : ""].filter(Boolean).join(" • ")
+              : "Hatari ready";
+            sendParent("tonyst-loaded", "Engine, loaded", loadedDetail);
+            setTimeout(() => canvas.focus(), 250);
+          }],
+          canvas,
+          totalDependencies: 0,
+          locateFile: (path) => `${ENGINE_DIR}/${path}?v=${VERSION}`,
+          print: (text) => console.log("[Hatari]", text),
+          printErr: (text) => console.warn("[Hatari]", text),
+          setStatus: (text) => {
+            console.log("[Hatari]", text);
+            setBootMessage(text || "Hatari ready");
+            sendParent("tonyst-status", text ? "Engine, loading" : "Engine, loaded", text || "Hatari ready");
+          },
+          monitorRunDependencies: function (remaining) {
+            this.totalDependencies = Math.max(this.totalDependencies, remaining);
+            const message = remaining ? "Preparing... (" + (this.totalDependencies - remaining) + "/" + this.totalDependencies + ")" : "All downloads complete.";
+            this.setStatus(message);
+          },
+        };
+
+        Object.defineProperty(moduleObject, "arguments", {
+          configurable: true,
+          enumerable: true,
+          get() { return args; },
+          set(value) {
+            if (!Array.isArray(value)) return;
+            for (let i = 0; i < value.length; i += 2) {
+              const flag = value[i];
+              const val = value[i + 1];
+              if ((hasDiskA || hasDiskB || legacyDisk) && flag === "-d") continue;
+              if (args.indexOf(flag) === -1) args.push(flag, val);
+            }
+          }
+        });
+
+        window.Module = moduleObject;
+        window.onerror = (message) => {
+          const detail = String(message || "Unknown error");
+          setBootMessage(detail);
+          sendParent("tonyst-error", "Engine, error", detail);
+        };
+        window.onunhandledrejection = (event) => {
+          const detail = String(event.reason?.message || event.reason || "Unknown promise error");
+          setBootMessage(detail);
+          sendParent("tonyst-error", "Engine, error", detail);
+        };
+
+        setBootMessage((hasDiskA || hasDiskB || legacyDisk) ? "Mounting selected disk setup" : "Starting clean boot");
+        sendParent("tonyst-status", "Engine, loading", (hasDiskA || hasDiskB || legacyDisk) ? "Mounting selected disks" : "Starting clean boot");
+
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = `${ENGINE_DIR}/hatari.js?v=${VERSION}`;
+        script.onerror = () => {
+          const detail = `Could not load ${ENGINE_DIR}/hatari.js`;
+          setBootMessage(detail);
+          sendParent("tonyst-error", "Engine, error", detail);
+        };
+        document.body.appendChild(script);
+      }
+
+      window.addEventListener("message", (event) => {
+        if (event.origin !== ORIGIN) return;
+        const data = event.data || {};
+        if (data.type === "tonyst-start") startHatari(data);
+        if (data.type === "tonyst-key") sendKey(data.code, Boolean(data.down));
+        if (data.type === "tonyst-sequence") sendStartSequence();
+        if (data.type === "tonyst-joy") updateVirtualJoy(data.axisX, data.axisY, Boolean(data.fire));
+        if (data.type === "tonyst-mouse-move") moveVirtualMouse(Number(data.dx || 0), Number(data.dy || 0));
+        if (data.type === "tonyst-mouse-button") setVirtualMouseButton(Boolean(data.down), Number(data.button || 0));
+        if (data.type === "tonyst-pause") {
+          try {
+            if (data.paused && typeof window.Module?.pauseMainLoop === "function") window.Module.pauseMainLoop();
+            if (!data.paused && typeof window.Module?.resumeMainLoop === "function") window.Module.resumeMainLoop();
+          } catch (_) {}
+        }
+      });
+
+      if (window.self !== window.top) {
+        try {
+          parent.document.addEventListener("fullscreenchange", () => {
+            parent.document.fullscreenElement === window.frameElement ? document.documentElement.classList.add("fullscreen") : document.documentElement.classList.remove("fullscreen");
+          });
+        } catch (_) {}
+      } else {
+        document.documentElement.classList.add("fullscreen");
+        setTimeout(() => startHatari({}), 250);
+      }
+
+      sendParent("tonyst-ready", "Engine, waiting", "Loader ready");
+      setTimeout(() => sendParent("tonyst-ready", "Engine, waiting", "Loader ready"), 300);
+    })();
+  </script>
+</body>
+</html>
