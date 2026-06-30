@@ -1,8 +1,8 @@
 {
-  "name": "TonyNES Stable",
-  "short_name": "TonyNES",
+  "name": "TonyRetro",
+  "short_name": "TonyRetro",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#080910",
-  "theme_color": "#b91c1c"
+  "background_color": "#05060a",
+  "theme_color": "#0b0c10"
 }
