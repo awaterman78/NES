@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>TonyNES</title>
+  <meta name="theme-color" content="#b91c1c" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root{color-scheme:dark;--bg:#080910;--shell:#d8d7d0;--shell2:#b8b7af;--screen:#11131b;--red:#c41f1f;--red2:#8d1515;--button:#34384c;--text:#f8f8ff;--muted:#aeb3c7}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;background:radial-gradient(circle at 50% -10%,rgba(255,255,255,.15),transparent 35%),linear-gradient(180deg,#151721,#06070b);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+    body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+    button{appearance:none;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,#484c67,#303449);color:#fff;font:inherit;font-weight:850;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 18px rgba(0,0,0,.38);user-select:none;touch-action:none}
+    button:active,button.is-pressed{transform:translateY(1px) scale(.985);filter:brightness(1.14)}
+    .app{height:100svh;width:min(100%,520px);margin:0 auto;padding:6px 8px max(8px,env(safe-area-inset-bottom));display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px}
+    .topbar{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .kicker{margin:0;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.18em;font-size:.56rem;line-height:1}
+    h1{margin:0;font-size:clamp(1.72rem,5.8vw,2.25rem);line-height:.92;letter-spacing:-.06em}
+    .menu-button{min-height:38px;padding:0 14px;border-radius:18px;white-space:nowrap}
+    .console{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.2) 12%,rgba(0,0,0,.1)),linear-gradient(180deg,var(--shell),var(--shell2));color:#171720;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -22px 34px rgba(0,0,0,.12),0 18px 45px rgba(0,0,0,.48);overflow:hidden}
+    .screen-module{display:grid;grid-template-rows:auto auto auto;gap:5px;padding:7px;border-radius:24px;background:linear-gradient(180deg,#333540,#15161d);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 24px rgba(0,0,0,.3);color:#fff}
+    .screen-header{height:12px;display:flex;justify-content:space-between;align-items:center;opacity:.72}.speaker{display:flex;gap:4px}.speaker span{width:18px;height:2px;display:block;border-radius:999px;background:rgba(255,255,255,.22)}.led{width:10px;height:10px;border-radius:999px;background:linear-gradient(180deg,#ff8585,#d71920);box-shadow:0 0 10px rgba(255,47,54,.44)}
+    .screen-wrap{position:relative;aspect-ratio:256/240;width:100%;background:#000;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 0 0 4px rgba(255,255,255,.04),inset 0 0 0 1px rgba(255,255,255,.05)}
+    .screen-wrap.wide{aspect-ratio:4/3}#nes{position:absolute;inset:0;width:100%;height:100%;background:#000;display:grid;place-items:center;overflow:hidden}#nes canvas{width:100%!important;height:100%!important;object-fit:contain;image-rendering:pixelated;background:#000}.screen-wrap.fill #nes canvas{object-fit:cover}
+    .screen-placeholder{position:absolute;inset:0;display:grid;place-content:center;gap:8px;text-align:center;padding:18px;background:radial-gradient(circle at center,#202332,#050506);color:#fff;z-index:3;pointer-events:none}.screen-placeholder.hidden{opacity:0}.screen-placeholder strong{font-size:1.55rem;letter-spacing:-.04em}.screen-placeholder span{color:var(--muted);font-size:.88rem}
+    .status{display:flex;justify-content:space-between;gap:8px;min-height:15px;font-size:.64rem;color:rgba(255,255,255,.72);overflow:hidden}.status span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .controls{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;padding:2px 3px 4px;color:#171720}.main-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}.left-bank,.right-bank{display:grid;justify-items:center;gap:6px;min-width:0}.label{color:rgba(0,0,0,.55);font-size:.66rem;text-transform:uppercase;letter-spacing:.18em;font-weight:900}
+    .dpad{position:relative;width:min(36vw,144px);aspect-ratio:1;border-radius:26px;background:linear-gradient(180deg,#2c2e3b,#1b1d28);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 9px 19px rgba(0,0,0,.28);touch-action:none}.dpad:before,.dpad:after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:10px;background:linear-gradient(180deg,#55596b,#303342);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}.dpad:before{width:78%;height:32%}.dpad:after{width:32%;height:78%}.dpad-dot{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#73778b,#3b3e4e);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);z-index:2}
+    .buttons{position:relative;width:min(39vw,162px);height:min(31vw,130px)}.round{position:absolute;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at 45% 30%,#f35b5b,var(--red) 60%,var(--red2) 100%);color:white;border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 22px rgba(0,0,0,.3)}.round strong{display:block;font-size:1.18rem;line-height:1}.round span{display:block;margin-top:4px;font-size:.66rem;font-weight:900;opacity:.72}.button-a{right:0;bottom:0;width:min(23vw,96px);aspect-ratio:1}.button-b{left:0;top:0;width:min(19vw,74px);aspect-ratio:1}
+    .pills{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}.pill{min-height:31px;padding:0 12px;border-radius:999px;font-size:.76rem;white-space:nowrap;background:linear-gradient(180deg,#efefee,#c8c8c5);color:#20222a;border:1px solid rgba(0,0,0,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 7px 15px rgba(0,0,0,.2)}.pill.dark{background:linear-gradient(180deg,#46495e,#2f3343);color:#fff}.hidden-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+    .drawer-backdrop{position:fixed;inset:0;z-index:20;display:grid;place-items:end center;background:rgba(0,0,0,.55);padding:10px}.drawer-backdrop[hidden]{display:none}.drawer{width:min(100%,520px);max-height:min(82dvh,660px);overflow:auto;padding:16px;border-radius:24px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(34,35,48,.98),rgba(10,10,14,.98));box-shadow:0 18px 55px rgba(0,0,0,.72);color:#fff}.drawer-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.drawer-head h2{margin:0;font-size:1.45rem;letter-spacing:-.04em}.small-button{min-height:38px;padding:0 14px;border-radius:16px}.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.menu-grid button{min-height:58px;padding:8px;border-radius:18px}.notes{margin-top:14px;color:var(--muted);line-height:1.35}.notes summary{color:white;font-weight:850;cursor:pointer}
+    @media(max-height:760px){.app{padding-top:4px;gap:4px}.kicker{display:none}h1{font-size:1.58rem}.topbar{min-height:32px}.menu-button{min-height:34px;padding:0 12px}.console{padding:6px;gap:6px;border-radius:26px}.screen-module{padding:6px;gap:4px;border-radius:21px}.screen-header{display:none}.dpad{width:min(32vw,124px)}.buttons{width:min(36vw,140px);height:min(27vw,110px)}.button-a{width:min(21vw,84px)}.button-b{width:min(16vw,62px)}.pill{min-height:28px;padding:0 9px;font-size:.70rem}}
+    @media(display-mode:standalone){.app{height:100dvh}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div><p class="kicker">8-bit console on iPhone</p><h1>TonyNES</h1></div>
+      <button class="menu-button" id="menuButton" type="button">☰ Menu</button>
+    </header>
+    <section class="console">
+      <section class="screen-module">
+        <div class="screen-header" aria-hidden="true"><div class="speaker"><span></span><span></span><span></span></div><div class="led"></div></div>
+        <div class="screen-wrap" id="screenWrap"><div id="nes"></div><div class="screen-placeholder" id="placeholder"><strong>TonyNES</strong><span id="screenMessage">Load a .nes file from Menu</span></div></div>
+        <div class="status"><span id="statusLeft">Core, waiting</span><span id="statusRight">No ROM loaded</span></div>
+      </section>
+      <section class="controls">
+        <div class="main-controls">
+          <div class="left-bank"><div class="label">D Pad</div><div class="dpad" id="dpad"><span class="dpad-dot"></span></div></div>
+          <div class="right-bank"><div class="label">Buttons</div><div class="buttons"><button class="round button-b" data-nes-button="BUTTON_B" type="button"><strong>B</strong><span>Run</span></button><button class="round button-a" data-nes-button="BUTTON_A" type="button"><strong>A</strong><span>Jump</span></button></div></div>
+        </div>
+        <div class="pills">
+          <button class="pill dark" data-nes-button="BUTTON_SELECT" type="button">Select</button>
+          <button class="pill dark" data-nes-button="BUTTON_START" type="button">Start</button>
+          <button class="pill" id="resetButton" type="button">Reset</button>
+          <button class="pill" id="screenButton" type="button">Screen: Fit</button>
+        </div>
+      </section>
+    </section>
+    <input id="romInput" class="hidden-input" type="file" accept=".nes,.NES" />
+    <div class="drawer-backdrop" id="drawerBackdrop" hidden>
+      <aside class="drawer">
+        <div class="drawer-head"><h2>TonyNES Menu</h2><button class="small-button" id="closeMenuButton" type="button">Close</button></div>
+        <div class="menu-grid"><button id="loadRomButton" type="button">Load NES ROM</button><button id="reloadRomButton" type="button">Reload ROM</button><button id="menuResetButton" type="button">Reset</button><button id="menuScreenButton" type="button">Screen: Fit</button></div>
+        <details class="notes" open><summary>Quick help</summary><p>This first build supports standard NES .nes files. Use your own ROM files only. No commercial games or BIOS files are included.</p><p>Controls: D Pad, A, B, Select and Start. Keyboard fallback is Arrow keys, X for A, Z for B, Enter for Start, Right Ctrl for Select.</p></details>
+        <p class="notes">Core: JSNES, loaded from unpkg CDN. If the page is offline, the emulator core will not load in this v0.1 build.</p>
+      </aside>
+    </div>
+  </main>
+  <script src="https://unpkg.com/jsnes@2/dist/jsnes.min.js"></script>
+  <script>
+    (()=> {
+      const nesContainer=document.getElementById("nes"),placeholder=document.getElementById("placeholder"),screenMessage=document.getElementById("screenMessage"),statusLeft=document.getElementById("statusLeft"),statusRight=document.getElementById("statusRight"),romInput=document.getElementById("romInput"),drawerBackdrop=document.getElementById("drawerBackdrop"),screenWrap=document.getElementById("screenWrap"),dpad=document.getElementById("dpad");
+      let browser=null,romData=null,romName="",screenMode=localStorage.getItem("tonynes-screen-mode")||"fit",activeDpadTouchId=null,heldDirection=null;
+      const isTouchDevice=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
+      const buttonMap=()=>({BUTTON_A:window.jsnes?.Controller?.BUTTON_A,BUTTON_B:window.jsnes?.Controller?.BUTTON_B,BUTTON_SELECT:window.jsnes?.Controller?.BUTTON_SELECT,BUTTON_START:window.jsnes?.Controller?.BUTTON_START,BUTTON_UP:window.jsnes?.Controller?.BUTTON_UP,BUTTON_DOWN:window.jsnes?.Controller?.BUTTON_DOWN,BUTTON_LEFT:window.jsnes?.Controller?.BUTTON_LEFT,BUTTON_RIGHT:window.jsnes?.Controller?.BUTTON_RIGHT});
+      const keyFallback={BUTTON_A:{key:"x",code:"KeyX",keyCode:88},BUTTON_B:{key:"z",code:"KeyZ",keyCode:90},BUTTON_SELECT:{key:"Control",code:"ControlRight",keyCode:17,ctrlKey:true,location:2},BUTTON_START:{key:"Enter",code:"Enter",keyCode:13},BUTTON_UP:{key:"ArrowUp",code:"ArrowUp",keyCode:38},BUTTON_DOWN:{key:"ArrowDown",code:"ArrowDown",keyCode:40},BUTTON_LEFT:{key:"ArrowLeft",code:"ArrowLeft",keyCode:37},BUTTON_RIGHT:{key:"ArrowRight",code:"ArrowRight",keyCode:39}};
+      const setStatus=(l,r,m)=>{if(l)statusLeft.textContent=l;if(r!==undefined)statusRight.textContent=r;if(m)screenMessage.textContent=m},showPlaceholder=m=>{if(m)screenMessage.textContent=m;placeholder.classList.remove("hidden")},hidePlaceholder=()=>placeholder.classList.add("hidden"),openMenu=()=>drawerBackdrop.hidden=false,closeMenu=()=>drawerBackdrop.hidden=true;
+      function applyScreenMode(){const fill=screenMode==="fill";screenWrap.classList.toggle("fill",fill);document.getElementById("screenButton").textContent=fill?"Screen: Fill":"Screen: Fit";document.getElementById("menuScreenButton").textContent=fill?"Screen: Fill":"Screen: Fit"}
+      function toggleScreenMode(){screenMode=screenMode==="fit"?"fill":"fit";localStorage.setItem("tonynes-screen-mode",screenMode);applyScreenMode();closeMenu()}
+      function arrayBufferToBinaryString(buffer){const bytes=new Uint8Array(buffer);let binary="";const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));return binary}
+      function ensureCore(){if(!window.jsnes?.Browser){setStatus("Core, error","JSNES not loaded","JSNES core did not load. Check internet/CDN.");showPlaceholder("JSNES core did not load. Check internet/CDN.");return false}return true}
+      function recreateBrowser(){if(!ensureCore())return false;try{if(browser&&typeof browser.destroy==="function")browser.destroy()}catch(_){}nesContainer.innerHTML="";browser=new jsnes.Browser({container:nesContainer,onError:e=>{console.error(e);setStatus("Core, error",romName||"No ROM loaded",String(e?.message||e||"NES error"));showPlaceholder(String(e?.message||e||"NES error"))}});return true}
+      function loadRomData(){if(!romData){setStatus("Core, waiting","No ROM loaded","Load a .nes file from Menu");showPlaceholder("Load a .nes file from Menu");return}if(!recreateBrowser())return;try{setStatus("Core, loading",romName,"Loading ROM");browser.loadROM(romData);setStatus("Core, loaded",romName,"");hidePlaceholder()}catch(err){console.error(err);setStatus("ROM error",romName,String(err?.message||err||"Could not load ROM"));showPlaceholder("Could not load this ROM")}}
+      function resetRom(){if(romData)loadRomData()}
+      function pressNesButton(name,down){const code=buttonMap()[name];try{if(browser?.nes&&code!==undefined){down?browser.nes.buttonDown(1,code):browser.nes.buttonUp(1,code);return}}catch(_){}dispatchFallbackKey(name,down)}
+      function makeKeyboardEvent(type,info){const event=new KeyboardEvent(type,{key:info.key,code:info.code,location:info.location||0,ctrlKey:!!info.ctrlKey,bubbles:true,cancelable:true,composed:true});Object.entries({key:info.key,code:info.code,keyCode:info.keyCode||0,which:info.keyCode||0,location:info.location||0,ctrlKey:!!info.ctrlKey}).forEach(([k,v])=>{try{Object.defineProperty(event,k,{get:()=>v})}catch(_){}});return event}
+      function dispatchFallbackKey(name,down){const info=keyFallback[name];if(!info)return;const event=makeKeyboardEvent(down?"keydown":"keyup",info);[window,document,document.body,nesContainer].forEach(t=>{try{t.dispatchEvent(event)}catch(_){}})}
+      function setDirection(direction){if(direction===heldDirection)return;if(heldDirection)pressNesButton(heldDirection,false);heldDirection=direction;if(heldDirection)pressNesButton(heldDirection,true)}
+      function releaseDirection(){if(heldDirection)pressNesButton(heldDirection,false);heldDirection=null}
+      function directionFromPoint(clientX,clientY){const rect=dpad.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2,dx=clientX-cx,dy=clientY-cy,dead=rect.width*.14;if(Math.hypot(dx,dy)<dead)return null;if(Math.abs(dx)>Math.abs(dy))return dx<0?"BUTTON_LEFT":"BUTTON_RIGHT";return dy<0?"BUTTON_UP":"BUTTON_DOWN"}
+      const findTouch=(touches,id)=>Array.from(touches||[]).find(t=>t.identifier===id);
+      if(isTouchDevice){dpad.addEventListener("touchstart",e=>{e.preventDefault();e.stopPropagation();if(activeDpadTouchId!==null||!e.changedTouches.length)return;const t=e.changedTouches[0];activeDpadTouchId=t.identifier;setDirection(directionFromPoint(t.clientX,t.clientY))},{passive:false});dpad.addEventListener("touchmove",e=>{if(activeDpadTouchId===null)return;const t=findTouch(e.changedTouches,activeDpadTouchId)||findTouch(e.touches,activeDpadTouchId);if(!t)return;e.preventDefault();e.stopPropagation();setDirection(directionFromPoint(t.clientX,t.clientY))},{passive:false});["touchend","touchcancel"].forEach(type=>dpad.addEventListener(type,e=>{if(activeDpadTouchId===null)return;const t=findTouch(e.changedTouches,activeDpadTouchId);if(!t)return;e.preventDefault();e.stopPropagation();activeDpadTouchId=null;releaseDirection()},{passive:false}))}else{dpad.addEventListener("pointerdown",e=>{e.preventDefault();dpad.setPointerCapture?.(e.pointerId);setDirection(directionFromPoint(e.clientX,e.clientY))});dpad.addEventListener("pointermove",e=>{if(!dpad.hasPointerCapture?.(e.pointerId))return;e.preventDefault();setDirection(directionFromPoint(e.clientX,e.clientY))});["pointerup","pointercancel","lostpointercapture"].forEach(type=>dpad.addEventListener(type,e=>{e.preventDefault();releaseDirection()}))}
+      document.querySelectorAll("[data-nes-button]").forEach(button=>{const name=button.dataset.nesButton;if(isTouchDevice){const activeTouches=new Set();button.addEventListener("touchstart",e=>{e.preventDefault();e.stopPropagation();Array.from(e.changedTouches).forEach(t=>activeTouches.add(t.identifier));button.classList.add("is-pressed");pressNesButton(name,true)},{passive:false});const touchEnd=e=>{let changed=false;Array.from(e.changedTouches).forEach(t=>{if(activeTouches.delete(t.identifier))changed=true});if(!changed)return;e.preventDefault();e.stopPropagation();if(activeTouches.size===0){button.classList.remove("is-pressed");pressNesButton(name,false)}};button.addEventListener("touchend",touchEnd,{passive:false});button.addEventListener("touchcancel",touchEnd,{passive:false})}else{const down=e=>{e.preventDefault();button.classList.add("is-pressed");pressNesButton(name,true)},up=e=>{e.preventDefault();button.classList.remove("is-pressed");pressNesButton(name,false)};button.addEventListener("pointerdown",down);button.addEventListener("pointerup",up);button.addEventListener("pointercancel",up);button.addEventListener("pointerleave",up)}});
+      document.getElementById("menuButton").addEventListener("click",openMenu);document.getElementById("closeMenuButton").addEventListener("click",closeMenu);drawerBackdrop.addEventListener("click",e=>{if(e.target===drawerBackdrop)closeMenu()});document.getElementById("loadRomButton").addEventListener("click",()=>{closeMenu();romInput.click()});document.getElementById("reloadRomButton").addEventListener("click",()=>{closeMenu();loadRomData()});document.getElementById("resetButton").addEventListener("click",resetRom);document.getElementById("menuResetButton").addEventListener("click",()=>{closeMenu();resetRom()});document.getElementById("screenButton").addEventListener("click",toggleScreenMode);document.getElementById("menuScreenButton").addEventListener("click",toggleScreenMode);
+      romInput.addEventListener("change",async()=>{const file=romInput.files?.[0];if(!file)return;romName=file.name;setStatus("ROM, reading",romName,"Reading ROM");try{romData=arrayBufferToBinaryString(await file.arrayBuffer());loadRomData()}catch(err){console.error(err);setStatus("ROM error",romName,"Could not read ROM");showPlaceholder("Could not read ROM")}});
+      document.addEventListener("visibilitychange",()=>{if(document.hidden){releaseDirection();["BUTTON_A","BUTTON_B","BUTTON_START","BUTTON_SELECT"].forEach(name=>pressNesButton(name,false))}});
+      window.addEventListener("load",()=>{applyScreenMode();if(ensureCore()){recreateBrowser();setStatus("Core, ready","No ROM loaded","Load a .nes file from Menu")}});
+    })();
+  </script>
+</body>
+</html>
