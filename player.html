@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>TonyNES EmulatorJS Player</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:white;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#game{position:fixed;inset:0;width:100%;height:100%;background:#000}
+#status{position:fixed;inset:0;display:grid;place-content:center;gap:8px;padding:24px;text-align:center;background:radial-gradient(circle at 50% 45%,#1a1d28,#050506);z-index:9999;pointer-events:none}
+#status[hidden]{display:none}#status strong{font-size:1.6rem;letter-spacing:-.04em}#status span{color:#aeb3c7}
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="status"><strong>TonyNES</strong><span id="message">Waiting for game</span></div>
+<script>
+(()=>{const ORIGIN=location.origin,status=document.getElementById("status"),message=document.getElementById("message");let objectUrl=null,started=false;
+function tell(type,payload={}){try{parent.postMessage({type,...payload},ORIGIN)}catch(_){}}
+function fail(text){message.textContent=text;status.hidden=false;tell("tonynes-player-error",{message:text})}
+function startPlayer(name,data){if(started)return;started=true;try{const blob=new Blob([data],{type:"application/octet-stream"});objectUrl=URL.createObjectURL(blob);window.EJS_player="#game";window.EJS_core="nes";window.EJS_gameName=name||"TonyNES Game";window.EJS_gameUrl=objectUrl;window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";window.EJS_startOnLoaded=true;window.EJS_backgroundColor="#000000";window.EJS_color="#d7362e";message.textContent="Loading EmulatorJS";tell("tonynes-player-status",{left:"Engine, loading",right:name||"Game",message:"Loading EmulatorJS"});const script=document.createElement("script");script.src="https://cdn.emulatorjs.org/stable/data/loader.js";script.async=true;script.onload=()=>setTimeout(()=>{status.hidden=true;tell("tonynes-player-status",{left:"Engine, loaded",right:name||"Game",message:"Ready"})},900);script.onerror=()=>fail("Could not load EmulatorJS CDN");document.body.appendChild(script)}catch(err){fail(String(err?.message||err||"Could not start EmulatorJS"))}}
+window.addEventListener("message",event=>{if(event.origin!==ORIGIN)return;const data=event.data||{};if(data.type==="tonynes-load")startPlayer(data.name,data.data)});
+window.addEventListener("beforeunload",()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
+tell("tonynes-player-ready",{});setTimeout(()=>tell("tonynes-player-ready",{}),300);
+})();
+</script>
+</body>
+</html>

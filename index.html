@@ -1,436 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <title>TonyNES Handheld</title>
-  <meta name="theme-color" content="#b91c1c" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <style>
-    :root{color-scheme:dark;--bg:#080910;--shell:#d8d7d0;--shell2:#b8b7af;--screen:#11131b;--red:#c41f1f;--red2:#8d1515;--button:#34384c;--text:#f8f8ff;--muted:#aeb3c7}
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none;background:radial-gradient(circle at 50% -10%,rgba(255,255,255,.15),transparent 35%),linear-gradient(180deg,#151721,#06070b);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
-    body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-    button{appearance:none;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,#484c67,#303449);color:#fff;font:inherit;font-weight:850;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 18px rgba(0,0,0,.38);user-select:none;touch-action:none}
-    button:active,button.is-pressed{transform:translateY(1px) scale(.985);filter:brightness(1.14)}
-    .app{height:100svh;width:min(100%,520px);margin:0 auto;padding:6px 8px max(8px,env(safe-area-inset-bottom));display:grid;grid-template-rows:auto minmax(0,1fr);gap:6px}
-    .topbar{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .kicker{margin:0;color:rgba(255,255,255,.62);text-transform:uppercase;letter-spacing:.18em;font-size:.56rem;line-height:1}
-    h1{margin:0;font-size:clamp(1.72rem,5.8vw,2.25rem);line-height:.92;letter-spacing:-.06em}
-    .menu-button{min-height:38px;padding:0 14px;border-radius:18px;white-space:nowrap}
-    .console{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;padding:8px;border-radius:30px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.2) 12%,rgba(0,0,0,.1)),linear-gradient(180deg,var(--shell),var(--shell2));color:#171720;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -22px 34px rgba(0,0,0,.12),0 18px 45px rgba(0,0,0,.48);overflow:hidden}
-    .screen-module{display:grid;grid-template-rows:auto auto auto;gap:5px;padding:7px;border-radius:24px;background:linear-gradient(180deg,#333540,#15161d);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 24px rgba(0,0,0,.3);color:#fff}
-    .screen-header{height:12px;display:flex;justify-content:space-between;align-items:center;opacity:.72}.speaker{display:flex;gap:4px}.speaker span{width:18px;height:2px;display:block;border-radius:999px;background:rgba(255,255,255,.22)}.led{width:10px;height:10px;border-radius:999px;background:linear-gradient(180deg,#ff8585,#d71920);box-shadow:0 0 10px rgba(255,47,54,.44)}
-    .screen-wrap{position:relative;aspect-ratio:256/240;width:100%;background:#000;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 0 0 4px rgba(255,255,255,.04),inset 0 0 0 1px rgba(255,255,255,.05)}
-    .screen-wrap.wide{aspect-ratio:4/3}#nes{position:absolute;inset:0;width:100%;height:100%;background:#000;display:grid;place-items:center;overflow:hidden}#nes canvas{width:100%!important;height:100%!important;object-fit:contain;image-rendering:pixelated;background:#000}.screen-wrap.fill #nes canvas{object-fit:cover}
-    .screen-placeholder{position:absolute;inset:0;display:grid;place-content:center;gap:8px;text-align:center;padding:18px;background:radial-gradient(circle at center,#202332,#050506);color:#fff;z-index:3;pointer-events:none}.screen-placeholder.hidden{opacity:0}.screen-placeholder strong{font-size:1.55rem;letter-spacing:-.04em}.screen-placeholder span{color:var(--muted);font-size:.88rem}
-    .status{display:flex;justify-content:space-between;gap:8px;min-height:15px;font-size:.64rem;color:rgba(255,255,255,.72);overflow:hidden}.status span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .controls{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;padding:2px 3px 4px;color:#171720}.main-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}.left-bank,.right-bank{display:grid;justify-items:center;gap:6px;min-width:0}.label{color:rgba(0,0,0,.55);font-size:.66rem;text-transform:uppercase;letter-spacing:.18em;font-weight:900}
-    .dpad{position:relative;width:min(36vw,144px);aspect-ratio:1;border-radius:26px;background:linear-gradient(180deg,#2c2e3b,#1b1d28);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 9px 19px rgba(0,0,0,.28);touch-action:none}.dpad:before,.dpad:after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:10px;background:linear-gradient(180deg,#55596b,#303342);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}.dpad:before{width:78%;height:32%}.dpad:after{width:32%;height:78%}.dpad-dot{position:absolute;left:50%;top:50%;width:34%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,#73778b,#3b3e4e);box-shadow:inset 0 1px 0 rgba(255,255,255,.22);z-index:2}
-    .buttons{position:relative;width:min(39vw,162px);height:min(31vw,130px)}.round{position:absolute;border-radius:50%;display:grid;place-content:center;text-align:center;background:radial-gradient(circle at 45% 30%,#f35b5b,var(--red) 60%,var(--red2) 100%);color:white;border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 22px rgba(0,0,0,.3)}.round strong{display:block;font-size:1.18rem;line-height:1}.round span{display:block;margin-top:4px;font-size:.66rem;font-weight:900;opacity:.72}.button-a{right:0;bottom:0;width:min(23vw,96px);aspect-ratio:1}.button-b{left:0;top:0;width:min(19vw,74px);aspect-ratio:1}
-    .pills{display:flex;justify-content:center;flex-wrap:wrap;gap:7px}.pill{min-height:31px;padding:0 12px;border-radius:999px;font-size:.76rem;white-space:nowrap;background:linear-gradient(180deg,#efefee,#c8c8c5);color:#20222a;border:1px solid rgba(0,0,0,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 7px 15px rgba(0,0,0,.2)}.pill.dark{background:linear-gradient(180deg,#46495e,#2f3343);color:#fff}.hidden-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-    .drawer-backdrop{position:fixed;inset:0;z-index:20;display:grid;place-items:end center;background:rgba(0,0,0,.55);padding:10px}.drawer-backdrop[hidden]{display:none}.drawer{width:min(100%,520px);max-height:min(82dvh,660px);overflow:auto;padding:16px;border-radius:24px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(34,35,48,.98),rgba(10,10,14,.98));box-shadow:0 18px 55px rgba(0,0,0,.72);color:#fff}.drawer-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.drawer-head h2{margin:0;font-size:1.45rem;letter-spacing:-.04em}.small-button{min-height:38px;padding:0 14px;border-radius:16px}.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.menu-grid button{min-height:58px;padding:8px;border-radius:18px}.notes{margin-top:14px;color:var(--muted);line-height:1.35}.notes summary{color:white;font-weight:850;cursor:pointer}
-
-    .library-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 8px}.library-head h3{margin:0;font-size:1.08rem}.library-meta{color:var(--muted);font-size:.78rem}.library-list{display:grid;gap:8px}.game-card{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.06)}.game-title{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.game-sub{margin-top:2px;color:var(--muted);font-size:.72rem}.card-button{min-height:36px;padding:0 10px;border-radius:13px;font-size:.78rem}.danger{background:linear-gradient(180deg,#7f2d2d,#4a1515)!important}.empty{padding:12px;border:1px dashed rgba(255,255,255,.18);border-radius:16px;color:var(--muted);text-align:center}.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:50;max-width:min(92vw,440px);padding:10px 14px;border-radius:999px;background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.16);color:white;font-weight:800;box-shadow:0 12px 28px rgba(0,0,0,.45)}.toast[hidden]{display:none}
-    @media(max-height:760px){.app{padding-top:4px;gap:4px}.kicker{display:none}h1{font-size:1.58rem}.topbar{min-height:32px}.menu-button{min-height:34px;padding:0 12px}.console{padding:6px;gap:6px;border-radius:26px}.screen-module{padding:6px;gap:4px;border-radius:21px}.screen-header{display:none}.dpad{width:min(32vw,124px)}.buttons{width:min(36vw,140px);height:min(27vw,110px)}.button-a{width:min(21vw,84px)}.button-b{width:min(16vw,62px)}.pill{min-height:28px;padding:0 9px;font-size:.70rem}}
-    @media(display-mode:standalone){.app{height:100dvh}}
-  
-    /* TonyNES v0.3, full handheld rebuild skin.
-       Same library and emulator logic, redesigned to use the iPhone space like a proper handheld. */
-    html, body {
-      background:
-        radial-gradient(circle at 50% -18%, rgba(255,255,255,.12), transparent 38%),
-        linear-gradient(180deg,#0d0e12,#020305) !important;
-    }
-
-    .app {
-      width: min(100%, 520px) !important;
-      padding: 4px 4px max(4px, env(safe-area-inset-bottom)) !important;
-      gap: 4px !important;
-    }
-
-    .topbar {
-      min-height: 32px !important;
-      padding: 0 4px !important;
-    }
-
-    .kicker {
-      display: none !important;
-    }
-
-    h1 {
-      font-size: clamp(1.55rem, 5vw, 2rem) !important;
-      letter-spacing: -0.055em !important;
-    }
-
-    .menu-button {
-      min-height: 34px !important;
-      padding: 0 13px !important;
-      border-radius: 17px !important;
-      background: linear-gradient(180deg,#4a4e68,#303446) !important;
-    }
-
-    .console {
-      grid-template-rows: auto minmax(0, 1fr) !important;
-      gap: 8px !important;
-      padding: 6px !important;
-      border-radius: 28px !important;
-      background:
-        radial-gradient(circle at 50% 4%, rgba(255,255,255,.11), transparent 18%),
-        linear-gradient(180deg, #121318 0%, #0c0d11 45%, #111217 100%) !important;
-      color: #fff !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.10),
-        inset 0 -28px 55px rgba(255,255,255,.02),
-        0 16px 38px rgba(0,0,0,.55) !important;
-      border: 1px solid rgba(255,255,255,.10) !important;
-    }
-
-    .screen-module {
-      padding: 5px !important;
-      gap: 4px !important;
-      border-radius: 24px !important;
-      background:
-        linear-gradient(180deg,#030305 0%, #11131a 100%) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.10),
-        inset 0 -10px 20px rgba(255,255,255,.03),
-        0 8px 24px rgba(0,0,0,.35) !important;
-      border: 1px solid rgba(255,255,255,.08) !important;
-    }
-
-    .screen-header {
-      height: 10px !important;
-      padding: 0 8px !important;
-    }
-
-    .speaker span {
-      width: 16px !important;
-      height: 2px !important;
-      background: rgba(255,255,255,.12) !important;
-    }
-
-    .led {
-      width: 11px !important;
-      height: 11px !important;
-    }
-
-    .screen-wrap {
-      width: 100% !important;
-      aspect-ratio: 4 / 3 !important;
-      border-radius: 18px !important;
-      background: #000 !important;
-      border: 1px solid rgba(255,255,255,.08) !important;
-      box-shadow:
-        0 0 0 3px rgba(255,255,255,.025),
-        inset 0 0 0 1px rgba(255,255,255,.04) !important;
-    }
-
-    #nes canvas {
-      object-fit: contain !important;
-      background: #000 !important;
-    }
-
-    .screen-wrap.fill #nes canvas {
-      object-fit: cover !important;
-    }
-
-    .screen-placeholder {
-      background: radial-gradient(circle at 50% 45%, #1a1d28, #050506) !important;
-      border-radius: 18px !important;
-    }
-
-    .status {
-      min-height: 14px !important;
-      font-size: .60rem !important;
-      color: rgba(255,255,255,.62) !important;
-      padding: 0 2px !important;
-    }
-
-    .controls {
-      gap: 8px !important;
-      padding: 0 10px 9px !important;
-      color: #fff !important;
-    }
-
-    .main-controls {
-      grid-template-columns: 1fr 1fr !important;
-      gap: 10px !important;
-      align-items: end !important;
-      padding-top: 2px !important;
-    }
-
-    .label {
-      color: rgba(255,255,255,.58) !important;
-      font-size: .66rem !important;
-      letter-spacing: .18em !important;
-      margin-bottom: 2px !important;
-    }
-
-    .dpad {
-      width: min(39vw, 162px) !important;
-      border-radius: 24px !important;
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    .dpad:before,
-    .dpad:after {
-      background: linear-gradient(180deg,#191b22,#060608) !important;
-      border: 5px solid #e7e7e4 !important;
-      box-shadow:
-        inset 0 2px 4px rgba(255,255,255,.12),
-        0 8px 18px rgba(0,0,0,.55) !important;
-      border-radius: 11px !important;
-    }
-
-    .dpad:before {
-      width: 82% !important;
-      height: 30% !important;
-    }
-
-    .dpad:after {
-      width: 30% !important;
-      height: 82% !important;
-    }
-
-    .dpad-dot {
-      width: 33% !important;
-      background: radial-gradient(circle at 42% 35%, #282a32, #050506) !important;
-      box-shadow:
-        inset 0 1px 2px rgba(255,255,255,.12),
-        0 4px 10px rgba(0,0,0,.42) !important;
-    }
-
-    .buttons {
-      width: min(41vw, 170px) !important;
-      height: min(32vw, 132px) !important;
-    }
-
-    .round {
-      background: radial-gradient(circle at 45% 30%,#ff5e54,#d8342f 62%,#9b1717 100%) !important;
-      border: 5px solid #e7e7e4 !important;
-      box-shadow:
-        inset 0 2px 3px rgba(255,255,255,.18),
-        inset 0 -8px 15px rgba(0,0,0,.20),
-        0 10px 18px rgba(0,0,0,.44) !important;
-    }
-
-    .round strong {
-      font-size: 1.26rem !important;
-    }
-
-    .round span {
-      font-size: .66rem !important;
-      opacity: .78 !important;
-    }
-
-    .button-a {
-      width: min(24vw, 100px) !important;
-      right: 0 !important;
-      bottom: 0 !important;
-    }
-
-    .button-b {
-      width: min(20vw, 78px) !important;
-      left: 0 !important;
-      top: 0 !important;
-    }
-
-    .pills {
-      gap: 8px !important;
-      padding: 2px 0 0 !important;
-    }
-
-    .pill {
-      min-height: 32px !important;
-      padding: 0 14px !important;
-      border-radius: 11px !important;
-      font-size: .76rem !important;
-      color: #d9342f !important;
-      background: linear-gradient(180deg,#f2f2f0,#cfcfca) !important;
-      border: 2px solid rgba(255,255,255,.92) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.80), 0 7px 14px rgba(0,0,0,.35) !important;
-      text-transform: uppercase !important;
-      letter-spacing: .04em !important;
-    }
-
-    .pill.dark {
-      color: #d9342f !important;
-      background: linear-gradient(180deg,#f2f2f0,#cfcfca) !important;
-    }
-
-    @media (max-height:760px) {
-      .app {
-        padding-top: 3px !important;
-      }
-
-      h1 {
-        font-size: 1.44rem !important;
-      }
-
-      .topbar {
-        min-height: 29px !important;
-      }
-
-      .menu-button {
-        min-height: 31px !important;
-        padding: 0 11px !important;
-      }
-
-      .console {
-        padding: 5px !important;
-        gap: 6px !important;
-        border-radius: 24px !important;
-      }
-
-      .screen-module {
-        padding: 4px !important;
-        border-radius: 21px !important;
-      }
-
-      .screen-header {
-        display: none !important;
-      }
-
-      .status {
-        font-size: .56rem !important;
-        min-height: 12px !important;
-      }
-
-      .controls {
-        gap: 6px !important;
-        padding: 0 8px 7px !important;
-      }
-
-      .main-controls {
-        gap: 8px !important;
-      }
-
-      .dpad {
-        width: min(36vw, 140px) !important;
-      }
-
-      .buttons {
-        width: min(39vw, 152px) !important;
-        height: min(29vw, 116px) !important;
-      }
-
-      .button-a {
-        width: min(22vw, 88px) !important;
-      }
-
-      .button-b {
-        width: min(18vw, 68px) !important;
-      }
-
-      .pill {
-        min-height: 28px !important;
-        padding: 0 10px !important;
-        font-size: .68rem !important;
-      }
-    }
-
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>TonyNES EmulatorJS</title>
+<meta name="theme-color" content="#0b0c10" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.webmanifest" />
+<style>
+:root{color-scheme:dark;--bg:#050608;--line:rgba(255,255,255,.14);--text:#f8f8ff;--muted:#aeb3c7;--red:#d7362e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:radial-gradient(circle at 50% -12%,rgba(255,255,255,.13),transparent 36%),linear-gradient(180deg,#11131b,var(--bg) 78%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button{appearance:none;border:1px solid var(--line);background:linear-gradient(180deg,#4a4e68,#303445);color:var(--text);font:inherit;font-weight:850;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 18px rgba(0,0,0,.38);user-select:none;touch-action:manipulation}
+button:active{transform:translateY(1px) scale(.99);filter:brightness(1.12)}
+.app{height:100svh;width:min(100%,560px);margin:0 auto;padding:4px 6px max(6px,env(safe-area-inset-bottom));display:grid;grid-template-rows:auto minmax(0,1fr);gap:5px}
+.topbar{min-height:34px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{margin:0;font-size:clamp(1.5rem,5.4vw,2.1rem);line-height:.92;letter-spacing:-.06em}
+.kicker{margin:0 0 1px;color:rgba(255,255,255,.58);font-size:.54rem;text-transform:uppercase;letter-spacing:.18em;line-height:1}
+.menu-button{min-height:36px;padding:0 14px;border-radius:18px;white-space:nowrap}
+.console{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:6px;padding:6px;border-radius:28px;border:1px solid rgba(255,255,255,.12);background:radial-gradient(circle at 50% 0%,rgba(255,255,255,.10),transparent 24%),linear-gradient(180deg,#101116,#07080b);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 45px rgba(0,0,0,.55);overflow:hidden}
+.player-shell{min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:5px;padding:5px;border-radius:24px;background:linear-gradient(180deg,#030305,#12141d);border:1px solid rgba(255,255,255,.08)}
+.screen-top{height:10px;display:flex;justify-content:space-between;align-items:center;padding:0 8px;opacity:.75}.speaker{display:flex;gap:4px}.speaker span{width:16px;height:2px;display:block;border-radius:999px;background:rgba(255,255,255,.13)}.led{width:10px;height:10px;border-radius:999px;background:linear-gradient(180deg,#ff8585,var(--red));box-shadow:0 0 10px rgba(255,47,54,.44)}
+.screen{position:relative;min-height:0;border-radius:18px;overflow:hidden;background:#000;border:1px solid rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(255,255,255,.025),inset 0 0 0 1px rgba(255,255,255,.04)}
+.screen iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.placeholder{position:absolute;inset:0;z-index:2;display:grid;place-content:center;gap:8px;text-align:center;padding:20px;background:radial-gradient(circle at 50% 45%,#1a1d28,#050506);pointer-events:none}.placeholder[hidden]{display:none}.placeholder strong{font-size:1.6rem;letter-spacing:-.04em}.placeholder span{color:var(--muted)}
+.status{min-height:15px;display:flex;justify-content:space-between;gap:8px;color:rgba(255,255,255,.66);font-size:.62rem}.status span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.control-note{padding:6px 8px 8px;display:grid;gap:5px;color:rgba(255,255,255,.70);font-size:.72rem;line-height:1.3}.quick-row{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}.pill{min-height:32px;padding:0 13px;border-radius:999px;font-size:.76rem;white-space:nowrap}.pill.red{background:linear-gradient(180deg,#ff5e54,#b91c1c)}
+.drawer-backdrop{position:fixed;inset:0;z-index:20;display:grid;place-items:end center;background:rgba(0,0,0,.58);padding:10px}.drawer-backdrop[hidden]{display:none}.drawer{width:min(100%,540px);max-height:min(88dvh,740px);overflow:auto;padding:16px;border-radius:24px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(180deg,rgba(34,35,48,.98),rgba(10,10,14,.98));box-shadow:0 18px 55px rgba(0,0,0,.72)}
+.drawer-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px}.drawer-head h2{margin:0;font-size:1.45rem;letter-spacing:-.04em}.small-button{min-height:38px;padding:0 14px;border-radius:16px}.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.menu-grid button{min-height:54px;padding:8px;border-radius:18px}.danger{background:linear-gradient(180deg,#7f2d2d,#4a1515)!important}
+.library-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:16px 0 8px}.library-head h3{margin:0;font-size:1.08rem}.library-meta{color:var(--muted);font-size:.78rem}.library-list{display:grid;gap:8px}.game-card{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.06)}.game-title{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.game-sub{margin-top:2px;color:var(--muted);font-size:.72rem}.card-button{min-height:36px;padding:0 10px;border-radius:13px;font-size:.78rem}.empty{padding:12px;border:1px dashed rgba(255,255,255,.18);border-radius:16px;color:var(--muted);text-align:center}.notes{margin-top:14px;color:var(--muted);line-height:1.35}.notes summary{color:#fff;font-weight:850;cursor:pointer}.hidden-input{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:50;max-width:min(92vw,440px);padding:10px 14px;border-radius:999px;background:rgba(0,0,0,.80);border:1px solid rgba(255,255,255,.16);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(0,0,0,.45)}.toast[hidden]{display:none}
+@media(max-height:760px){.app{padding-top:3px;gap:3px}.kicker{display:none}h1{font-size:1.44rem}.topbar{min-height:30px}.menu-button{min-height:31px;padding:0 11px}.console{padding:5px;border-radius:24px}.screen-top{display:none}.player-shell{padding:4px;border-radius:21px}.control-note{font-size:.66rem;padding:4px 6px 6px}.pill{min-height:28px;padding:0 10px;font-size:.68rem}}
+@media(display-mode:standalone){.app{height:100dvh}}
+</style>
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <div><p class="kicker">8-bit console on iPhone</p><h1>TonyNES</h1></div>
-      <button class="menu-button" id="menuButton" type="button">☰ Library</button>
-    </header>
-    <section class="console">
-      <section class="screen-module">
-        <div class="screen-header" aria-hidden="true"><div class="speaker"><span></span><span></span><span></span></div><div class="led"></div></div>
-        <div class="screen-wrap" id="screenWrap"><div id="nes"></div><div class="screen-placeholder" id="placeholder"><strong>TonyNES</strong><span id="screenMessage">Import games to your local library</span></div></div>
-        <div class="status"><span id="statusLeft">Core, waiting</span><span id="statusRight">Library empty</span></div>
-      </section>
-      <section class="controls">
-        <div class="main-controls">
-          <div class="left-bank"><div class="label">D Pad</div><div class="dpad" id="dpad"><span class="dpad-dot"></span></div></div>
-          <div class="right-bank"><div class="label">Buttons</div><div class="buttons"><button class="round button-b" data-nes-button="BUTTON_B" type="button"><strong>B</strong><span>Run</span></button><button class="round button-a" data-nes-button="BUTTON_A" type="button"><strong>A</strong><span>Jump</span></button></div></div>
-        </div>
-        <div class="pills">
-          <button class="pill dark" data-nes-button="BUTTON_SELECT" type="button">Select</button>
-          <button class="pill dark" data-nes-button="BUTTON_START" type="button">Start</button>
-          <button class="pill" id="resetButton" type="button">Reset</button>
-          <button class="pill" id="screenButton" type="button">Screen: Fit</button>
-        </div>
-      </section>
-    </section>
-    <input id="romInput" class="hidden-input" type="file" accept=".nes,.NES" multiple />
-    <div class="drawer-backdrop" id="drawerBackdrop" hidden>
-      <aside class="drawer">
-        <div class="drawer-head"><h2>TonyNES Library</h2><button class="small-button" id="closeMenuButton" type="button">Close</button></div>
-        <div class="menu-grid">
-          <button id="importButton" type="button">Import ROMs</button>
-          <button id="reloadRomButton" type="button">Reload Current</button>
-          <button id="menuResetButton" type="button">Reset</button>
-          <button id="menuScreenButton" type="button">Screen: Fit</button>
-          <button id="clearLibraryButton" class="danger" type="button">Clear Library</button>
-        </div>
-        <div class="library-head"><h3>Games</h3><span class="library-meta" id="libraryMeta">0 games</span></div>
-        <div class="library-list" id="libraryList"><div class="empty">No games imported yet. Tap Import ROMs.</div></div>
-        <details class="notes" open>
-          <summary>Quick help</summary>
-          <p>Import your own local .nes files once. TonyNES stores them privately on this iPhone using browser storage. Tap Play from the library next time.</p>
-          <p>Do not clear Safari website data for this site unless you want to wipe the library. Keep your ROM files backed up elsewhere.</p>
-        </details>
-        <p class="notes">Core: JSNES, loaded from unpkg CDN. No ROMs are included in this app.</p>
-      </aside>
-    </div>
-    <div class="toast" id="toast" hidden></div>
-  </main>
-  <script src="https://unpkg.com/jsnes@2/dist/jsnes.min.js"></script>
-  <script>
-
-    (()=> {
-      const DB_NAME="tonynes-library",DB_VERSION=1,STORE="roms";
-      const nesContainer=document.getElementById("nes"),placeholder=document.getElementById("placeholder"),screenMessage=document.getElementById("screenMessage"),statusLeft=document.getElementById("statusLeft"),statusRight=document.getElementById("statusRight"),romInput=document.getElementById("romInput"),drawerBackdrop=document.getElementById("drawerBackdrop"),screenWrap=document.getElementById("screenWrap"),dpad=document.getElementById("dpad"),libraryList=document.getElementById("libraryList"),libraryMeta=document.getElementById("libraryMeta"),toast=document.getElementById("toast");
-      let browser=null,currentRomData=null,currentRomName="",currentRomId=null,screenMode=localStorage.getItem("tonynes-screen-mode")||"fit",activeDpadTouchId=null,heldDirection=null,db=null;
-      const isTouchDevice=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
-      const buttonMap=()=>({BUTTON_A:window.jsnes?.Controller?.BUTTON_A,BUTTON_B:window.jsnes?.Controller?.BUTTON_B,BUTTON_SELECT:window.jsnes?.Controller?.BUTTON_SELECT,BUTTON_START:window.jsnes?.Controller?.BUTTON_START,BUTTON_UP:window.jsnes?.Controller?.BUTTON_UP,BUTTON_DOWN:window.jsnes?.Controller?.BUTTON_DOWN,BUTTON_LEFT:window.jsnes?.Controller?.BUTTON_LEFT,BUTTON_RIGHT:window.jsnes?.Controller?.BUTTON_RIGHT});
-      const keyFallback={BUTTON_A:{key:"x",code:"KeyX",keyCode:88},BUTTON_B:{key:"z",code:"KeyZ",keyCode:90},BUTTON_SELECT:{key:"Control",code:"ControlRight",keyCode:17,ctrlKey:true,location:2},BUTTON_START:{key:"Enter",code:"Enter",keyCode:13},BUTTON_UP:{key:"ArrowUp",code:"ArrowUp",keyCode:38},BUTTON_DOWN:{key:"ArrowDown",code:"ArrowDown",keyCode:40},BUTTON_LEFT:{key:"ArrowLeft",code:"ArrowLeft",keyCode:37},BUTTON_RIGHT:{key:"ArrowRight",code:"ArrowRight",keyCode:39}};
-      const setStatus=(l,r,m)=>{if(l)statusLeft.textContent=l;if(r!==undefined)statusRight.textContent=r;if(m)screenMessage.textContent=m},showPlaceholder=m=>{if(m)screenMessage.textContent=m;placeholder.classList.remove("hidden")},hidePlaceholder=()=>placeholder.classList.add("hidden"),openMenu=()=>{drawerBackdrop.hidden=false;renderLibrary()},closeMenu=()=>drawerBackdrop.hidden=true;
-      function showToast(msg){toast.textContent=msg;toast.hidden=false;clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.hidden=true,1800)}
-      function applyScreenMode(){const fill=screenMode==="fill";screenWrap.classList.toggle("fill",fill);document.getElementById("screenButton").textContent=fill?"Screen: Fill":"Screen: Fit";document.getElementById("menuScreenButton").textContent=fill?"Screen: Fill":"Screen: Fit"}
-      function toggleScreenMode(){screenMode=screenMode==="fit"?"fill":"fit";localStorage.setItem("tonynes-screen-mode",screenMode);applyScreenMode();closeMenu()}
-      function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const database=req.result;if(!database.objectStoreNames.contains(STORE)){const store=database.createObjectStore(STORE,{keyPath:"id"});store.createIndex("addedAt","addedAt")}};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
-      function txStore(mode="readonly"){return db.transaction(STORE,mode).objectStore(STORE)}
-      function getAllRoms(){return new Promise((resolve,reject)=>{const req=txStore().getAll();req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>(b.favourite===true)-(a.favourite===true)||a.name.localeCompare(b.name)));req.onerror=()=>reject(req.error)})}
-      function getRom(id){return new Promise((resolve,reject)=>{const req=txStore().get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
-      function putRom(record){return new Promise((resolve,reject)=>{const req=txStore("readwrite").put(record);req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
-      function deleteRom(id){return new Promise((resolve,reject)=>{const req=txStore("readwrite").delete(id);req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
-      function clearRoms(){return new Promise((resolve,reject)=>{const req=txStore("readwrite").clear();req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
-      function formatBytes(bytes){if(!bytes)return"0 KB";const units=["B","KB","MB","GB"];let n=bytes,i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return`${n.toFixed(n>=10||i===0?0:1)} ${units[i]}`}
-      function arrayBufferToBinaryString(buffer){const bytes=new Uint8Array(buffer);let binary="";const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));return binary}
-      function ensureCore(){if(!window.jsnes?.Browser){setStatus("Core, error","JSNES not loaded","JSNES core did not load. Check internet/CDN.");showPlaceholder("JSNES core did not load. Check internet/CDN.");return false}return true}
-      function recreateBrowser(){if(!ensureCore())return false;try{if(browser&&typeof browser.destroy==="function")browser.destroy()}catch(_){}nesContainer.innerHTML="";browser=new jsnes.Browser({container:nesContainer,onError:e=>{console.error(e);setStatus("Core, error",currentRomName||"No ROM loaded",String(e?.message||e||"NES error"));showPlaceholder(String(e?.message||e||"NES error"))}});return true}
-      function loadRomData(){if(!currentRomData){setStatus("Core, waiting","Library ready","Pick a game from Library");showPlaceholder("Pick a game from Library");return}if(!recreateBrowser())return;try{setStatus("Core, loading",currentRomName,"Loading ROM");browser.loadROM(currentRomData);setStatus("Core, loaded",currentRomName,"");hidePlaceholder();showToast(`Loaded ${currentRomName}`)}catch(err){console.error(err);setStatus("ROM error",currentRomName,String(err?.message||err||"Could not load ROM"));showPlaceholder("Could not load this ROM")}}
-      async function playRecord(id){const rec=await getRom(id);if(!rec){showToast("Game not found");return}currentRomId=rec.id;currentRomName=rec.name;currentRomData=arrayBufferToBinaryString(rec.data);closeMenu();loadRomData()}
-      function resetRom(){if(currentRomData)loadRomData()}
-      async function renderLibrary(){if(!db)return;const roms=await getAllRoms();const total=roms.reduce((sum,r)=>sum+(r.size||0),0);libraryMeta.textContent=`${roms.length} game${roms.length===1?"":"s"} · ${formatBytes(total)}`;statusRight.textContent=currentRomName||`${roms.length} in library`;if(!roms.length){libraryList.innerHTML='<div class="empty">No games imported yet. Tap Import ROMs.</div>';return}libraryList.innerHTML="";for(const rec of roms){const card=document.createElement("div");card.className="game-card";const info=document.createElement("div");const title=document.createElement("div");title.className="game-title";title.textContent=(rec.favourite?"★ ":"")+rec.name;const sub=document.createElement("div");sub.className="game-sub";sub.textContent=`${formatBytes(rec.size)} · ${new Date(rec.addedAt).toLocaleDateString()}`;info.append(title,sub);const play=document.createElement("button");play.className="card-button";play.textContent="Play";play.onclick=()=>playRecord(rec.id);const more=document.createElement("button");more.className="card-button";more.textContent="⋯";more.onclick=async()=>{const action=prompt(`${rec.name}
-
-Type F to favourite/unfavourite, R to rename, or D to delete.`,"F");if(!action)return;const a=action.trim().toUpperCase();if(a==="F"){rec.favourite=!rec.favourite;await putRom(rec);renderLibrary()}else if(a==="R"){const n=prompt("Display name",rec.name);if(n&&n.trim()){rec.name=n.trim();await putRom(rec);renderLibrary()}}else if(a==="D"){if(confirm(`Delete ${rec.name} from this iPhone library?`)){await deleteRom(rec.id);if(currentRomId===rec.id){currentRomId=null;currentRomName="";currentRomData=null;showPlaceholder("Pick a game from Library")}renderLibrary()}}};card.append(info,play,more);libraryList.append(card)}}
-      function pressNesButton(name,down){const code=buttonMap()[name];try{if(browser?.nes&&code!==undefined){down?browser.nes.buttonDown(1,code):browser.nes.buttonUp(1,code);return}}catch(_){}dispatchFallbackKey(name,down)}
-      function makeKeyboardEvent(type,info){const event=new KeyboardEvent(type,{key:info.key,code:info.code,location:info.location||0,ctrlKey:!!info.ctrlKey,bubbles:true,cancelable:true,composed:true});Object.entries({key:info.key,code:info.code,keyCode:info.keyCode||0,which:info.keyCode||0,location:info.location||0,ctrlKey:!!info.ctrlKey}).forEach(([k,v])=>{try{Object.defineProperty(event,k,{get:()=>v})}catch(_){}});return event}
-      function dispatchFallbackKey(name,down){const info=keyFallback[name];if(!info)return;const event=makeKeyboardEvent(down?"keydown":"keyup",info);[window,document,document.body,nesContainer].forEach(t=>{try{t.dispatchEvent(event)}catch(_){}})}
-      function setDirection(direction){if(direction===heldDirection)return;if(heldDirection)pressNesButton(heldDirection,false);heldDirection=direction;if(heldDirection)pressNesButton(heldDirection,true)}
-      function releaseDirection(){if(heldDirection)pressNesButton(heldDirection,false);heldDirection=null}
-      function directionFromPoint(clientX,clientY){const rect=dpad.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2,dx=clientX-cx,dy=clientY-cy,dead=rect.width*.14;if(Math.hypot(dx,dy)<dead)return null;if(Math.abs(dx)>Math.abs(dy))return dx<0?"BUTTON_LEFT":"BUTTON_RIGHT";return dy<0?"BUTTON_UP":"BUTTON_DOWN"}
-      const findTouch=(touches,id)=>Array.from(touches||[]).find(t=>t.identifier===id);
-      if(isTouchDevice){dpad.addEventListener("touchstart",e=>{e.preventDefault();e.stopPropagation();if(activeDpadTouchId!==null||!e.changedTouches.length)return;const t=e.changedTouches[0];activeDpadTouchId=t.identifier;setDirection(directionFromPoint(t.clientX,t.clientY))},{passive:false});dpad.addEventListener("touchmove",e=>{if(activeDpadTouchId===null)return;const t=findTouch(e.changedTouches,activeDpadTouchId)||findTouch(e.touches,activeDpadTouchId);if(!t)return;e.preventDefault();e.stopPropagation();setDirection(directionFromPoint(t.clientX,t.clientY))},{passive:false});["touchend","touchcancel"].forEach(type=>dpad.addEventListener(type,e=>{if(activeDpadTouchId===null)return;const t=findTouch(e.changedTouches,activeDpadTouchId);if(!t)return;e.preventDefault();e.stopPropagation();activeDpadTouchId=null;releaseDirection()},{passive:false}))}else{dpad.addEventListener("pointerdown",e=>{e.preventDefault();dpad.setPointerCapture?.(e.pointerId);setDirection(directionFromPoint(e.clientX,e.clientY))});dpad.addEventListener("pointermove",e=>{if(!dpad.hasPointerCapture?.(e.pointerId))return;e.preventDefault();setDirection(directionFromPoint(e.clientX,e.clientY))});["pointerup","pointercancel","lostpointercapture"].forEach(type=>dpad.addEventListener(type,e=>{e.preventDefault();releaseDirection()}))}
-      document.querySelectorAll("[data-nes-button]").forEach(button=>{const name=button.dataset.nesButton;if(isTouchDevice){const activeTouches=new Set();button.addEventListener("touchstart",e=>{e.preventDefault();e.stopPropagation();Array.from(e.changedTouches).forEach(t=>activeTouches.add(t.identifier));button.classList.add("is-pressed");pressNesButton(name,true)},{passive:false});const touchEnd=e=>{let changed=false;Array.from(e.changedTouches).forEach(t=>{if(activeTouches.delete(t.identifier))changed=true});if(!changed)return;e.preventDefault();e.stopPropagation();if(activeTouches.size===0){button.classList.remove("is-pressed");pressNesButton(name,false)}};button.addEventListener("touchend",touchEnd,{passive:false});button.addEventListener("touchcancel",touchEnd,{passive:false})}else{const down=e=>{e.preventDefault();button.classList.add("is-pressed");pressNesButton(name,true)},up=e=>{e.preventDefault();button.classList.remove("is-pressed");pressNesButton(name,false)};button.addEventListener("pointerdown",down);button.addEventListener("pointerup",up);button.addEventListener("pointercancel",up);button.addEventListener("pointerleave",up)}});
-      document.getElementById("menuButton").addEventListener("click",openMenu);document.getElementById("closeMenuButton").addEventListener("click",closeMenu);drawerBackdrop.addEventListener("click",e=>{if(e.target===drawerBackdrop)closeMenu()});document.getElementById("importButton").addEventListener("click",()=>{closeMenu();romInput.click()});document.getElementById("reloadRomButton").addEventListener("click",()=>{closeMenu();loadRomData()});document.getElementById("resetButton").addEventListener("click",resetRom);document.getElementById("menuResetButton").addEventListener("click",()=>{closeMenu();resetRom()});document.getElementById("screenButton").addEventListener("click",toggleScreenMode);document.getElementById("menuScreenButton").addEventListener("click",toggleScreenMode);
-      document.getElementById("clearLibraryButton").addEventListener("click",async()=>{if(!confirm("Clear the local TonyNES library on this iPhone? This does not delete your original files."))return;await clearRoms();currentRomId=null;currentRomName="";currentRomData=null;showPlaceholder("Library cleared");showToast("Library cleared");renderLibrary()});
-      romInput.addEventListener("change",async()=>{const files=Array.from(romInput.files||[]);if(!files.length)return;showToast(`Importing ${files.length} file${files.length===1?"":"s"}`);let imported=0;for(const file of files){try{const data=await file.arrayBuffer();const rec={id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,name:file.name,size:file.size,type:file.type||"application/octet-stream",addedAt:Date.now(),favourite:false,data};await putRom(rec);imported++}catch(err){console.error(err)}}romInput.value="";showToast(`Imported ${imported} game${imported===1?"":"s"}`);await renderLibrary();openMenu()});
-      document.addEventListener("visibilitychange",()=>{if(document.hidden){releaseDirection();["BUTTON_A","BUTTON_B","BUTTON_START","BUTTON_SELECT"].forEach(name=>pressNesButton(name,false))}});
-      window.addEventListener("load",async()=>{applyScreenMode();try{await openDb();await renderLibrary()}catch(err){console.error(err);setStatus("Library error","IndexedDB issue","Local library could not open")}if(ensureCore()){recreateBrowser();setStatus("Core, ready",statusRight.textContent,"Pick a game from Library")}});
-    })();
-
-  </script>
+<main class="app">
+<header class="topbar"><div><p class="kicker">RetroArch Web core test</p><h1>TonyNES</h1></div><button class="menu-button" id="menuButton" type="button">☰ Library</button></header>
+<section class="console">
+<section class="player-shell"><div class="screen-top"><div class="speaker"><span></span><span></span><span></span></div><div class="led"></div></div><div class="screen"><iframe id="playerFrame" title="TonyNES EmulatorJS player" allow="gamepad; fullscreen; autoplay"></iframe><div class="placeholder" id="placeholder"><strong>TonyNES</strong><span id="screenMessage">Import games, then tap Play</span></div></div><div class="status"><span id="statusLeft">Engine, waiting</span><span id="statusRight">No game loaded</span></div></section>
+<section class="control-note"><div class="quick-row"><button class="pill red" id="openLibraryButton" type="button">Library</button><button class="pill" id="reloadButton" type="button">Reload Game</button><button class="pill" id="fullscreenButton" type="button">Full Screen</button></div><div>Controls are handled by EmulatorJS for this test build. Tap the game screen for its own touch controls and menu.</div></section>
+</section>
+<input id="romInput" class="hidden-input" type="file" accept=".nes,.NES,.zip,.ZIP" multiple />
+<div class="drawer-backdrop" id="drawerBackdrop" hidden><aside class="drawer"><div class="drawer-head"><h2>TonyNES Library</h2><button class="small-button" id="closeMenuButton" type="button">Close</button></div><div class="menu-grid"><button id="importButton" type="button">Import ROMs</button><button id="reloadCurrentButton" type="button">Reload Current</button><button id="fullscreenMenuButton" type="button">Full Screen</button><button id="clearLibraryButton" class="danger" type="button">Clear Library</button></div><div class="library-head"><h3>Games</h3><span class="library-meta" id="libraryMeta">0 games</span></div><div class="library-list" id="libraryList"><div class="empty">No games imported yet.</div></div><details class="notes" open><summary>Quick help</summary><p>This is the EmulatorJS test build. It uses EmulatorJS built in player controls, so the screen should behave more like a proper web emulator app.</p><p>Import your own .nes or .zip files. They are stored only on this iPhone in browser storage. Clearing Safari website data can wipe the library.</p></details></aside></div>
+<div class="toast" id="toast" hidden></div>
+</main>
+<script>
+(()=>{const VERSION="0.4",DB_NAME="tonynes-emulatorjs-library",DB_VERSION=1,STORE="roms",ORIGIN=location.origin;
+const frame=document.getElementById("playerFrame"),placeholder=document.getElementById("placeholder"),screenMessage=document.getElementById("screenMessage"),statusLeft=document.getElementById("statusLeft"),statusRight=document.getElementById("statusRight"),romInput=document.getElementById("romInput"),drawerBackdrop=document.getElementById("drawerBackdrop"),libraryList=document.getElementById("libraryList"),libraryMeta=document.getElementById("libraryMeta"),toast=document.getElementById("toast");
+let db=null,pendingRecord=null,currentRecordId=null,currentName="",playerReady=false,playToken=0;
+function showToast(m){toast.textContent=m;toast.hidden=false;clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.hidden=true,1800)}
+function setStatus(l,r,m){if(l)statusLeft.textContent=l;if(r!==undefined)statusRight.textContent=r;if(m)screenMessage.textContent=m}
+function showPlaceholder(m){if(m)screenMessage.textContent=m;placeholder.hidden=false}function hidePlaceholder(){placeholder.hidden=true}
+function openMenu(){drawerBackdrop.hidden=false;renderLibrary()}function closeMenu(){drawerBackdrop.hidden=true}
+function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const database=req.result;if(!database.objectStoreNames.contains(STORE)){const store=database.createObjectStore(STORE,{keyPath:"id"});store.createIndex("addedAt","addedAt")}};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
+function txStore(mode="readonly"){return db.transaction(STORE,mode).objectStore(STORE)}
+function getAllRoms(){return new Promise((resolve,reject)=>{const req=txStore().getAll();req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>(b.favourite===true)-(a.favourite===true)||a.name.localeCompare(b.name)));req.onerror=()=>reject(req.error)})}
+function getRom(id){return new Promise((resolve,reject)=>{const req=txStore().get(id);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function putRom(record){return new Promise((resolve,reject)=>{const req=txStore("readwrite").put(record);req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
+function deleteRom(id){return new Promise((resolve,reject)=>{const req=txStore("readwrite").delete(id);req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
+function clearRoms(){return new Promise((resolve,reject)=>{const req=txStore("readwrite").clear();req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error)})}
+function formatBytes(bytes){if(!bytes)return"0 KB";const units=["B","KB","MB","GB"];let n=bytes,i=0;while(n>=1024&&i<units.length-1){n/=1024;i++}return`${n.toFixed(n>=10||i===0?0:1)} ${units[i]}`}
+async function renderLibrary(){const roms=await getAllRoms();const total=roms.reduce((s,r)=>s+(r.size||0),0);libraryMeta.textContent=`${roms.length} game${roms.length===1?"":"s"} · ${formatBytes(total)}`;if(!roms.length){libraryList.innerHTML='<div class="empty">No games imported yet. Tap Import ROMs.</div>';statusRight.textContent=currentName||"Library empty";return}statusRight.textContent=currentName||`${roms.length} in library`;libraryList.innerHTML="";for(const record of roms){const card=document.createElement("div");card.className="game-card";const info=document.createElement("div");const title=document.createElement("div");title.className="game-title";title.textContent=`${record.favourite?"★ ":""}${record.name}`;const sub=document.createElement("div");sub.className="game-sub";sub.textContent=`${formatBytes(record.size)} · ${new Date(record.addedAt).toLocaleDateString()}`;info.append(title,sub);const play=document.createElement("button");play.className="card-button";play.textContent="Play";play.onclick=()=>playRecord(record.id);const more=document.createElement("button");more.className="card-button";more.textContent="⋯";more.onclick=async()=>{const action=prompt(`${record.name}\n\nType F to favourite/unfavourite, R to rename, or D to delete.`,"F");if(!action)return;const a=action.trim().toUpperCase();if(a==="F"){record.favourite=!record.favourite;await putRom(record);await renderLibrary()}if(a==="R"){const renamed=prompt("Display name",record.name);if(renamed&&renamed.trim()){record.name=renamed.trim();await putRom(record);await renderLibrary()}}if(a==="D"&&confirm(`Delete ${record.name} from this iPhone library?`)){await deleteRom(record.id);if(currentRecordId===record.id){currentRecordId=null;currentName="";pendingRecord=null;showPlaceholder("Pick a game from Library");setStatus("Engine, waiting","No game loaded")}await renderLibrary()}};card.append(info,play,more);libraryList.append(card)}}
+function reloadPlayerFrame(){playerReady=false;playToken++;frame.src=`player.html?v=${VERSION}&t=${Date.now()}&token=${playToken}`}
+async function playRecord(id){const record=await getRom(id);if(!record){showToast("Game not found");return}currentRecordId=record.id;currentName=record.name;pendingRecord=record;closeMenu();showPlaceholder("Starting EmulatorJS");setStatus("Engine, loading",currentName,"Starting EmulatorJS");statusRight.textContent=currentName;reloadPlayerFrame()}
+function sendPendingToPlayer(){if(!playerReady||!pendingRecord||!frame.contentWindow)return;frame.contentWindow.postMessage({type:"tonynes-load",name:pendingRecord.name,data:pendingRecord.data},ORIGIN);hidePlaceholder();setStatus("Engine, loaded",pendingRecord.name,"EmulatorJS player ready")}
+function reloadCurrent(){if(!currentRecordId){openMenu();showToast("Pick a game first");return}playRecord(currentRecordId)}
+async function fullscreenPlayer(){try{await(frame.requestFullscreen?.()||frame.webkitRequestFullscreen?.())}catch(_){try{await document.documentElement.requestFullscreen?.()}catch(_){}}}
+document.getElementById("menuButton").addEventListener("click",openMenu);document.getElementById("openLibraryButton").addEventListener("click",openMenu);document.getElementById("closeMenuButton").addEventListener("click",closeMenu);drawerBackdrop.addEventListener("click",e=>{if(e.target===drawerBackdrop)closeMenu()});
+document.getElementById("importButton").addEventListener("click",()=>{closeMenu();romInput.click()});document.getElementById("reloadButton").addEventListener("click",reloadCurrent);document.getElementById("reloadCurrentButton").addEventListener("click",()=>{closeMenu();reloadCurrent()});document.getElementById("fullscreenButton").addEventListener("click",fullscreenPlayer);document.getElementById("fullscreenMenuButton").addEventListener("click",()=>{closeMenu();fullscreenPlayer()});
+document.getElementById("clearLibraryButton").addEventListener("click",async()=>{if(!confirm("Clear the local TonyNES library on this iPhone? This does not delete your original files."))return;await clearRoms();currentRecordId=null;currentName="";pendingRecord=null;showPlaceholder("Library cleared");setStatus("Engine, waiting","Library empty");showToast("Library cleared");await renderLibrary()});
+romInput.addEventListener("change",async()=>{const files=Array.from(romInput.files||[]);if(!files.length)return;showToast(`Importing ${files.length} file${files.length===1?"":"s"}`);let imported=0;for(const file of files){try{const data=await file.arrayBuffer();await putRom({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,name:file.name,size:file.size,type:file.type||"application/octet-stream",addedAt:Date.now(),favourite:false,data});imported++}catch(e){console.error(e)}}romInput.value="";showToast(`Imported ${imported} game${imported===1?"":"s"}`);await renderLibrary();openMenu()});
+window.addEventListener("message",event=>{if(event.origin!==ORIGIN)return;const data=event.data||{};if(event.source===frame.contentWindow&&data.type==="tonynes-player-ready"){playerReady=true;sendPendingToPlayer()}if(event.source===frame.contentWindow&&data.type==="tonynes-player-status"){setStatus(data.left||"Engine",data.right??currentName,data.message||"")}if(event.source===frame.contentWindow&&data.type==="tonynes-player-error"){setStatus("Engine, error",currentName||"No game loaded",data.message||"EmulatorJS error");showPlaceholder(data.message||"EmulatorJS error")}});
+window.addEventListener("load",async()=>{try{await openDb();await renderLibrary()}catch(e){console.error(e);setStatus("Library error","IndexedDB issue","Local library could not open")}reloadPlayerFrame()});
+})();
+</script>
 </body>
 </html>
