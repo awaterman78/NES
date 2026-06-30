@@ -8,20 +8,126 @@
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000;color:white;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 #game{position:fixed;inset:0;width:100%;height:100%;background:#000}
 #status{position:fixed;inset:0;display:grid;place-content:center;gap:8px;padding:24px;text-align:center;background:radial-gradient(circle at 50% 45%,#1a1d28,#050506);z-index:9999;pointer-events:none}
-#status[hidden]{display:none}#status strong{font-size:1.6rem;letter-spacing:-.04em}#status span{color:#aeb3c7}
+#status[hidden]{display:none}#status strong{font-size:1.6rem;letter-spacing:-.04em}#status span{color:#aeb3c7;max-width:80vw}
 </style>
 </head>
 <body>
 <div id="game"></div>
-<div id="status"><strong>TonyNES</strong><span id="message">Waiting for game</span></div>
+<div id="status"><strong>TonyNES</strong><span id="message">Preparing player</span></div>
 <script>
-(()=>{const ORIGIN=location.origin,status=document.getElementById("status"),message=document.getElementById("message");let objectUrl=null,started=false;
-function tell(type,payload={}){try{parent.postMessage({type,...payload},ORIGIN)}catch(_){}}
-function fail(text){message.textContent=text;status.hidden=false;tell("tonynes-player-error",{message:text})}
-function startPlayer(name,data){if(started)return;started=true;try{const blob=new Blob([data],{type:"application/octet-stream"});objectUrl=URL.createObjectURL(blob);window.EJS_player="#game";window.EJS_core="nes";window.EJS_gameName=name||"TonyNES Game";window.EJS_gameUrl=objectUrl;window.EJS_pathtodata="https://cdn.emulatorjs.org/stable/data/";window.EJS_startOnLoaded=true;window.EJS_backgroundColor="#000000";window.EJS_color="#d7362e";message.textContent="Loading EmulatorJS";tell("tonynes-player-status",{left:"Engine, loading",right:name||"Game",message:"Loading EmulatorJS"});const script=document.createElement("script");script.src="https://cdn.emulatorjs.org/stable/data/loader.js";script.async=true;script.onload=()=>setTimeout(()=>{status.hidden=true;tell("tonynes-player-status",{left:"Engine, loaded",right:name||"Game",message:"Ready"})},900);script.onerror=()=>fail("Could not load EmulatorJS CDN");document.body.appendChild(script)}catch(err){fail(String(err?.message||err||"Could not start EmulatorJS"))}}
-window.addEventListener("message",event=>{if(event.origin!==ORIGIN)return;const data=event.data||{};if(data.type==="tonynes-load")startPlayer(data.name,data.data)});
-window.addEventListener("beforeunload",()=>{if(objectUrl)URL.revokeObjectURL(objectUrl)});
-tell("tonynes-player-ready",{});setTimeout(()=>tell("tonynes-player-ready",{}),300);
+(()=> {
+  const ORIGIN = location.origin;
+  const DB_NAME = "tonynes-emulatorjs-library";
+  const DB_VERSION = 1;
+  const STORE = "roms";
+  const status = document.getElementById("status");
+  const message = document.getElementById("message");
+  const params = new URLSearchParams(location.search);
+  const gameId = params.get("id") || "";
+  let objectUrl = null;
+
+  function tell(type, payload = {}) {
+    try { parent.postMessage({ type, ...payload }, ORIGIN); } catch (_) {}
+  }
+
+  function setMessage(text) {
+    message.textContent = text;
+  }
+
+  function fail(text) {
+    setMessage(text);
+    status.hidden = false;
+    tell("tonynes-player-error", { message: text });
+  }
+
+  function openDb() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const database = req.result;
+        if (!database.objectStoreNames.contains(STORE)) {
+          database.createObjectStore(STORE, { keyPath: "id" });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  function getRom(db, id) {
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(STORE, "readonly").objectStore(STORE).get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function start() {
+    if (!gameId) {
+      setMessage("Waiting for game");
+      tell("tonynes-player-status", { left: "Engine, waiting", right: "No game loaded", message: "Pick a game" });
+      return;
+    }
+
+    try {
+      setMessage("Reading local library");
+      tell("tonynes-player-status", { left: "Engine, loading", right: "Reading game", message: "Reading local library" });
+
+      const db = await openDb();
+      const record = await getRom(db, gameId);
+      if (!record || !record.data) {
+        fail("Game not found in local library");
+        return;
+      }
+
+      const name = record.name || "TonyNES Game";
+      setMessage("Creating local game URL");
+      const blob = new Blob([record.data], { type: "application/octet-stream" });
+      objectUrl = URL.createObjectURL(blob);
+
+      window.EJS_player = "#game";
+      window.EJS_core = "nes";
+      window.EJS_gameName = name;
+      window.EJS_gameUrl = objectUrl;
+      window.EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+      window.EJS_startOnLoaded = true;
+      window.EJS_backgroundColor = "#000000";
+      window.EJS_color = "#d7362e";
+      window.EJS_alignStartButton = "center";
+      window.EJS_Buttons = {
+        restart: true,
+        playPause: true,
+        saveState: true,
+        loadState: true,
+        fullscreen: true,
+        settings: true
+      };
+
+      setMessage("Loading EmulatorJS");
+      tell("tonynes-player-status", { left: "Engine, loading", right: name, message: "Loading EmulatorJS" });
+
+      const script = document.createElement("script");
+      script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+      script.async = true;
+      script.onload = () => {
+        setTimeout(() => {
+          status.hidden = true;
+          tell("tonynes-player-status", { left: "Engine, loaded", right: name, message: "Ready", hide: true });
+        }, 1600);
+      };
+      script.onerror = () => fail("Could not load EmulatorJS CDN");
+      document.body.appendChild(script);
+    } catch (err) {
+      fail(String(err?.message || err || "Could not start EmulatorJS"));
+    }
+  }
+
+  window.addEventListener("beforeunload", () => {
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+  });
+
+  tell("tonynes-player-ready", {});
+  start();
 })();
 </script>
 </body>
