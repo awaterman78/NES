@@ -1,8 +1,8 @@
 {
-  "name": "TonyNES Direct",
+  "name": "TonyNES Stable",
   "short_name": "TonyNES",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#050608",
-  "theme_color": "#0b0c10"
+  "background_color": "#080910",
+  "theme_color": "#b91c1c"
 }
