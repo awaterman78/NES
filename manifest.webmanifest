@@ -1,5 +1,5 @@
 {
-  "name": "TonyNES EmulatorJS",
+  "name": "TonyNES Direct",
   "short_name": "TonyNES",
   "start_url": "./index.html",
   "display": "standalone",
