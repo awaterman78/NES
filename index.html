@@ -35,6 +35,31 @@ h1{margin:0;font-size:clamp(1.5rem,5.4vw,2.1rem);line-height:.92;letter-spacing:
 .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);z-index:50;max-width:min(92vw,440px);padding:10px 14px;border-radius:999px;background:rgba(0,0,0,.80);border:1px solid rgba(255,255,255,.16);color:#fff;font-weight:800;box-shadow:0 12px 28px rgba(0,0,0,.45)}.toast[hidden]{display:none}
 @media(max-height:760px){.app{padding-top:3px;gap:3px}.kicker{display:none}h1{font-size:1.44rem}.topbar{min-height:30px}.menu-button{min-height:31px;padding:0 11px}.console{padding:5px;border-radius:24px}.screen-top{display:none}.player-shell{padding:4px;border-radius:21px}.control-note{font-size:.66rem;padding:4px 6px 6px}.pill{min-height:28px;padding:0 10px;font-size:.68rem}}
 @media(display-mode:standalone){.app{height:100dvh}}
+
+.visible-file-input {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  margin: 0 0 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: linear-gradient(180deg,#4a4e68,#303445);
+  color: white;
+  font: inherit;
+  font-weight: 850;
+}
+.visible-file-input::file-selector-button {
+  border: 0;
+  border-radius: 12px;
+  background: #d7362e;
+  color: white;
+  font: inherit;
+  font-weight: 850;
+  padding: 8px 12px;
+  margin-right: 10px;
+}
+
 </style>
 </head>
 <body>
@@ -44,12 +69,14 @@ h1{margin:0;font-size:clamp(1.5rem,5.4vw,2.1rem);line-height:.92;letter-spacing:
 <section class="player-shell"><div class="screen-top"><div class="speaker"><span></span><span></span><span></span></div><div class="led"></div></div><div class="screen"><iframe id="playerFrame" title="TonyNES EmulatorJS player" allow="gamepad; fullscreen; autoplay"></iframe><div class="placeholder" id="placeholder"><strong>TonyNES</strong><span id="screenMessage">Import games, then tap Play</span></div></div><div class="status"><span id="statusLeft">Engine, waiting</span><span id="statusRight">No game loaded</span></div></section>
 <section class="control-note"><div class="quick-row"><button class="pill red" id="openLibraryButton" type="button">Library</button><button class="pill" id="reloadButton" type="button">Reload Game</button><button class="pill" id="fullscreenButton" type="button">Full Screen</button></div><div>Controls are handled by EmulatorJS for this test build. Tap the game screen for its own touch controls and menu.</div></section>
 </section>
-<input id="romInput" class="hidden-input" type="file" multiple />
-<div class="drawer-backdrop" id="drawerBackdrop" hidden><aside class="drawer"><div class="drawer-head"><h2>TonyNES Library</h2><button class="small-button" id="closeMenuButton" type="button">Close</button></div><div class="menu-grid"><button id="importButton" type="button">Import ROMs</button><button id="reloadCurrentButton" type="button">Reload Current</button><button id="fullscreenMenuButton" type="button">Full Screen</button><button id="clearLibraryButton" class="danger" type="button">Clear Library</button></div><div class="library-head"><h3>Games</h3><span class="library-meta" id="libraryMeta">0 games</span></div><div class="library-list" id="libraryList"><div class="empty">No games imported yet.</div></div><details class="notes" open><summary>Quick help</summary><p>This is the EmulatorJS test build. It uses EmulatorJS built in player controls, so the screen should behave more like a proper web emulator app.</p><p>Import your own local NES files. The file picker now allows any file so iPhone does not grey out .nes files. Best formats are .nes or a .zip containing one .nes file.</p></details></aside></div>
+
+<div class="drawer-backdrop" id="drawerBackdrop" hidden><aside class="drawer"><div class="drawer-head"><h2>TonyNES Library</h2><button class="small-button" id="closeMenuButton" type="button">Close</button></div><input id="romInput" class="visible-file-input" type="file" multiple />
+<p class="notes" style="margin-top:0">Use the native Choose Files button below. It has no file type filter, so iPhone should not grey out .nes files.</p>
+<div class="menu-grid"><button id="importButton" type="button">Open Picker</button><button id="reloadCurrentButton" type="button">Reload Current</button><button id="fullscreenMenuButton" type="button">Full Screen</button><button id="clearLibraryButton" class="danger" type="button">Clear Library</button></div><div class="library-head"><h3>Games</h3><span class="library-meta" id="libraryMeta">0 games</span></div><div class="library-list" id="libraryList"><div class="empty">No games imported yet.</div></div><details class="notes" open><summary>Quick help</summary><p>This is the EmulatorJS test build. It uses EmulatorJS built in player controls, so the screen should behave more like a proper web emulator app.</p><p>Import your own local NES files. The picker is now visible and native, with no file type filter. Best formats are .nes or a .zip containing one .nes file.</p></details></aside></div>
 <div class="toast" id="toast" hidden></div>
 </main>
 <script>
-(()=>{const VERSION="0.4.1",DB_NAME="tonynes-emulatorjs-library",DB_VERSION=1,STORE="roms",ORIGIN=location.origin;
+(()=>{const VERSION="0.4.2",DB_NAME="tonynes-emulatorjs-library",DB_VERSION=1,STORE="roms",ORIGIN=location.origin;
 const frame=document.getElementById("playerFrame"),placeholder=document.getElementById("placeholder"),screenMessage=document.getElementById("screenMessage"),statusLeft=document.getElementById("statusLeft"),statusRight=document.getElementById("statusRight"),romInput=document.getElementById("romInput"),drawerBackdrop=document.getElementById("drawerBackdrop"),libraryList=document.getElementById("libraryList"),libraryMeta=document.getElementById("libraryMeta"),toast=document.getElementById("toast");
 let db=null,pendingRecord=null,currentRecordId=null,currentName="",playerReady=false,playToken=0;
 function showToast(m){toast.textContent=m;toast.hidden=false;clearTimeout(showToast.t);showToast.t=setTimeout(()=>toast.hidden=true,1800)}
@@ -71,7 +98,7 @@ function sendPendingToPlayer(){if(!playerReady||!pendingRecord||!frame.contentWi
 function reloadCurrent(){if(!currentRecordId){openMenu();showToast("Pick a game first");return}playRecord(currentRecordId)}
 async function fullscreenPlayer(){try{await(frame.requestFullscreen?.()||frame.webkitRequestFullscreen?.())}catch(_){try{await document.documentElement.requestFullscreen?.()}catch(_){}}}
 document.getElementById("menuButton").addEventListener("click",openMenu);document.getElementById("openLibraryButton").addEventListener("click",openMenu);document.getElementById("closeMenuButton").addEventListener("click",closeMenu);drawerBackdrop.addEventListener("click",e=>{if(e.target===drawerBackdrop)closeMenu()});
-document.getElementById("importButton").addEventListener("click",()=>{closeMenu();romInput.click()});document.getElementById("reloadButton").addEventListener("click",reloadCurrent);document.getElementById("reloadCurrentButton").addEventListener("click",()=>{closeMenu();reloadCurrent()});document.getElementById("fullscreenButton").addEventListener("click",fullscreenPlayer);document.getElementById("fullscreenMenuButton").addEventListener("click",()=>{closeMenu();fullscreenPlayer()});
+document.getElementById("importButton").addEventListener("click",()=>{romInput.scrollIntoView({block:"center"});try{romInput.click()}catch(_){}});document.getElementById("reloadButton").addEventListener("click",reloadCurrent);document.getElementById("reloadCurrentButton").addEventListener("click",()=>{closeMenu();reloadCurrent()});document.getElementById("fullscreenButton").addEventListener("click",fullscreenPlayer);document.getElementById("fullscreenMenuButton").addEventListener("click",()=>{closeMenu();fullscreenPlayer()});
 document.getElementById("clearLibraryButton").addEventListener("click",async()=>{if(!confirm("Clear the local TonyNES library on this iPhone? This does not delete your original files."))return;await clearRoms();currentRecordId=null;currentName="";pendingRecord=null;showPlaceholder("Library cleared");setStatus("Engine, waiting","Library empty");showToast("Library cleared");await renderLibrary()});
 romInput.addEventListener("change",async()=>{const files=Array.from(romInput.files||[]);if(!files.length)return;showToast(`Importing ${files.length} file${files.length===1?"":"s"}`);let imported=0;for(const file of files){try{const data=await file.arrayBuffer();await putRom({id:`${Date.now()}-${Math.random().toString(36).slice(2)}`,name:file.name,size:file.size,type:file.type||"application/octet-stream",addedAt:Date.now(),favourite:false,data});imported++}catch(e){console.error(e)}}romInput.value="";showToast(`Imported ${imported} game${imported===1?"":"s"}`);await renderLibrary();openMenu()});
 window.addEventListener("message",event=>{if(event.origin!==ORIGIN)return;const data=event.data||{};if(event.source===frame.contentWindow&&data.type==="tonynes-player-ready"){playerReady=true;sendPendingToPlayer()}if(event.source===frame.contentWindow&&data.type==="tonynes-player-status"){setStatus(data.left||"Engine",data.right??currentName,data.message||"")}if(event.source===frame.contentWindow&&data.type==="tonynes-player-error"){setStatus("Engine, error",currentName||"No game loaded",data.message||"EmulatorJS error");showPlaceholder(data.message||"EmulatorJS error")}});
