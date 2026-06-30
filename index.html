@@ -13,162 +13,140 @@
     :root {
       color-scheme: dark;
       --bg: #05060a;
-      --panel: rgba(20, 22, 32, .88);
-      --panel2: rgba(255,255,255,.06);
       --line: rgba(255,255,255,.14);
       --text: #f8f8ff;
       --muted: #aeb3c7;
       --red: #d7362e;
       --blue: #6977ff;
-      --green: #59d671;
+      --green: #56d56d;
+      --purple: #ae7cff;
       --yellow: #ffd166;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+    html,body {
+      margin:0;
+      width:100%;
+      height:100%;
+      overflow:hidden;
       background:
-        radial-gradient(circle at 50% -12%, rgba(100,112,255,.24), transparent 35%),
-        radial-gradient(circle at 10% 85%, rgba(215,54,46,.16), transparent 26%),
-        linear-gradient(180deg, #11131c 0%, var(--bg) 78%);
-      color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      overscroll-behavior: none;
+        radial-gradient(circle at 50% -10%, rgba(100,112,255,.24), transparent 34%),
+        radial-gradient(circle at 14% 88%, rgba(215,54,46,.16), transparent 28%),
+        linear-gradient(180deg,#11131c 0%, var(--bg) 78%);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      overscroll-behavior:none;
     }
     body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-    button, a.button {
-      appearance: none;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, #4a4e68, #303445);
-      color: var(--text);
-      font: inherit;
-      font-weight: 850;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 18px rgba(0,0,0,.38);
-      user-select: none;
-      touch-action: manipulation;
-      text-decoration: none;
-      display: inline-grid;
-      place-items: center;
+    button,a.button {
+      appearance:none;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#4a4e68,#303445);
+      color:var(--text);
+      font:inherit;
+      font-weight:850;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 18px rgba(0,0,0,.38);
+      user-select:none;
+      touch-action:manipulation;
+      text-decoration:none;
+      display:inline-grid;
+      place-items:center;
     }
-    button:active, a.button:active { transform: translateY(1px) scale(.99); filter: brightness(1.12); }
+    button:active,a.button:active { transform:translateY(1px) scale(.99); filter:brightness(1.12); }
     .app {
-      width: min(100%, 620px);
-      height: 100svh;
-      margin: 0 auto;
-      padding: 10px 10px max(10px, env(safe-area-inset-bottom));
-      display: grid;
-      grid-template-rows: auto auto minmax(0,1fr) auto;
-      gap: 12px;
+      width:min(100%,620px);
+      height:100svh;
+      margin:0 auto;
+      padding:10px 10px max(10px,env(safe-area-inset-bottom));
+      display:grid;
+      grid-template-rows:auto auto minmax(0,1fr) auto;
+      gap:12px;
     }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 44px; }
-    .kicker { margin: 0; color: var(--muted); text-transform: uppercase; letter-spacing: .18em; font-size: .62rem; line-height: 1; }
-    h1 { margin: 0; font-size: clamp(2.1rem, 8vw, 3.25rem); line-height: .9; letter-spacing: -.07em; }
-    .badge { border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; color: var(--muted); background: rgba(0,0,0,.24); font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .topbar { min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .kicker { margin:0; color:var(--muted); text-transform:uppercase; letter-spacing:.18em; font-size:.62rem; line-height:1; }
+    h1 { margin:0; font-size:clamp(2.1rem,8vw,3.25rem); line-height:.9; letter-spacing:-.07em; }
+    .badge { border:1px solid var(--line); border-radius:999px; padding:8px 12px; color:var(--muted); background:rgba(0,0,0,.24); font-size:.78rem; font-weight:850; white-space:nowrap; }
     .hero {
-      padding: 14px;
-      border-radius: 26px;
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border: 1px solid var(--line);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 30px rgba(0,0,0,.32);
+      padding:14px;
+      border-radius:26px;
+      background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 30px rgba(0,0,0,.32);
     }
-    .hero p { margin: 6px 0 0; color: var(--muted); line-height: 1.35; font-size: .92rem; }
-    .systems-wrap { min-height: 0; overflow: hidden; }
+    .hero strong { font-size:1.05rem; }
+    .hero p { margin:6px 0 0; color:var(--muted); line-height:1.35; font-size:.90rem; }
+    .systems-wrap { min-height:0; overflow:hidden; }
     .systems {
-      height: 100%;
-      display: grid;
-      grid-auto-flow: column;
-      grid-auto-columns: minmax(260px, 82%);
-      gap: 14px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      padding: 2px 4px 12px;
-      scrollbar-width: none;
+      height:100%;
+      display:grid;
+      grid-auto-flow:column;
+      grid-auto-columns:minmax(260px,82%);
+      gap:14px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      scroll-snap-type:x mandatory;
+      padding:2px 4px 12px;
+      scrollbar-width:none;
     }
-    .systems::-webkit-scrollbar { display: none; }
+    .systems::-webkit-scrollbar { display:none; }
     .card {
-      scroll-snap-align: center;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto minmax(0,1fr) auto;
-      gap: 12px;
-      padding: 16px;
-      border-radius: 30px;
+      scroll-snap-align:center;
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto minmax(0,1fr) auto;
+      gap:12px;
+      padding:16px;
+      border-radius:30px;
       background:
         radial-gradient(circle at 50% 0%, rgba(255,255,255,.16), transparent 28%),
-        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      border: 1px solid var(--line);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 18px 40px rgba(0,0,0,.42);
+        linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 40px rgba(0,0,0,.42);
     }
-    .card.nes { background: radial-gradient(circle at 50% 0%, rgba(215,54,46,.34), transparent 30%), linear-gradient(180deg,#191a22,#08090d); }
-    .card.st { background: radial-gradient(circle at 50% 0%, rgba(105,119,255,.34), transparent 30%), linear-gradient(180deg,#191a25,#08090d); }
-    .card.soon { opacity: .64; }
-    .card-head { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
-    .system-icon { width: 62px; height: 62px; border-radius: 18px; display: grid; place-items: center; font-size: 1.9rem; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.12); }
-    .status { font-size: .70rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); font-weight: 900; }
-    .card h2 { margin: 0; font-size: 2rem; letter-spacing: -.06em; }
-    .card p { margin: 6px 0 0; color: var(--muted); line-height: 1.35; }
+    .card.nes { background:radial-gradient(circle at 50% 0%, rgba(215,54,46,.34), transparent 30%), linear-gradient(180deg,#191a22,#08090d); }
+    .card.st { background:radial-gradient(circle at 50% 0%, rgba(105,119,255,.34), transparent 30%), linear-gradient(180deg,#191a25,#08090d); }
+    .card.gb { background:radial-gradient(circle at 50% 0%, rgba(86,213,109,.34), transparent 30%), linear-gradient(180deg,#151d18,#08090d); }
+    .card.gba { background:radial-gradient(circle at 50% 0%, rgba(174,124,255,.34), transparent 30%), linear-gradient(180deg,#1a1725,#08090d); }
+    .card.soon { opacity:.62; }
+    .card-head { display:flex; align-items:start; justify-content:space-between; gap:10px; }
+    .system-icon { width:62px; height:62px; border-radius:18px; display:grid; place-items:center; font-size:1.9rem; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.12); }
+    .status { font-size:.70rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); font-weight:900; }
+    .card h2 { margin:0; font-size:2rem; letter-spacing:-.06em; }
+    .card p { margin:6px 0 0; color:var(--muted); line-height:1.35; }
     .screen-mock {
-      min-height: 140px;
-      border-radius: 24px;
-      background: #000;
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: 0 0 0 4px rgba(255,255,255,.03), inset 0 0 0 1px rgba(255,255,255,.05);
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      position: relative;
+      min-height:140px;
+      border-radius:24px;
+      background:#000;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:0 0 0 4px rgba(255,255,255,.03), inset 0 0 0 1px rgba(255,255,255,.05);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      position:relative;
     }
     .screen-mock::before {
-      content: "";
-      position: absolute;
-      inset: 14px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(255,255,255,.12), transparent 35%), radial-gradient(circle at 50% 50%, rgba(90,100,190,.30), transparent 42%);
+      content:"";
+      position:absolute;
+      inset:14px;
+      border-radius:14px;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.12),transparent 35%),
+        radial-gradient(circle at 50% 50%,rgba(90,100,190,.30),transparent 42%);
     }
-    .screen-mock span { position: relative; font-weight: 900; color: rgba(255,255,255,.72); }
-    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .actions button, .actions a { min-height: 46px; border-radius: 18px; }
-    .primary { background: linear-gradient(180deg, #ff6158, #b91c1c) !important; }
-    .footer { color: var(--muted); font-size: .75rem; text-align: center; line-height: 1.35; }
-    .module-view {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      background: #000;
-      display: grid;
-      grid-template-rows: auto minmax(0,1fr);
-    }
-    .module-view[hidden] { display: none; }
-    .module-bar {
-      min-height: calc(42px + env(safe-area-inset-top));
-      padding: env(safe-area-inset-top) 8px 6px;
-      display: flex;
-      align-items: end;
-      gap: 8px;
-      background: linear-gradient(180deg, rgba(8,8,12,.96), rgba(8,8,12,.78));
-      border-bottom: 1px solid rgba(255,255,255,.10);
-    }
-    .module-bar button, .module-bar a {
-      min-height: 34px;
-      padding: 0 12px;
-      border-radius: 16px;
-      font-size: .78rem;
-    }
-    .module-title { flex: 1; min-width: 0; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .module-frame { width: 100%; height: 100%; border: 0; background: #000; }
+    .screen-mock span { position:relative; font-weight:900; color:rgba(255,255,255,.72); }
+    .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .actions a,.actions button { min-height:46px; border-radius:18px; }
+    .primary { background:linear-gradient(180deg,#ff6158,#b91c1c) !important; }
+    .footer { color:var(--muted); font-size:.75rem; text-align:center; line-height:1.35; }
     @media(max-height:760px) {
-      .app { padding-top: 6px; gap: 8px; }
-      .hero { padding: 11px; }
-      .hero p { font-size: .82rem; }
-      .systems { grid-auto-columns: minmax(250px, 80%); gap: 10px; }
-      .card { padding: 13px; border-radius: 25px; gap: 8px; }
-      .system-icon { width: 50px; height: 50px; border-radius: 15px; font-size: 1.55rem; }
-      .card h2 { font-size: 1.55rem; }
-      .screen-mock { min-height: 110px; }
-      .actions button, .actions a { min-height: 40px; border-radius: 16px; }
+      .app { padding-top:6px; gap:8px; }
+      .hero { padding:11px; }
+      .hero p { font-size:.82rem; }
+      .systems { grid-auto-columns:minmax(250px,80%); gap:10px; }
+      .card { padding:13px; border-radius:25px; gap:8px; }
+      .system-icon { width:50px; height:50px; border-radius:15px; font-size:1.55rem; }
+      .card h2 { font-size:1.55rem; }
+      .screen-mock { min-height:110px; }
+      .actions a,.actions button { min-height:40px; border-radius:16px; }
     }
   </style>
 </head>
@@ -179,12 +157,12 @@
         <p class="kicker">iPhone Retro Launcher</p>
         <h1>TonyRetro</h1>
       </div>
-      <div class="badge">v0.1</div>
+      <div class="badge">v0.2</div>
     </header>
 
     <section class="hero">
-      <strong>Swipe systems, pick one, play.</strong>
-      <p>NES and Atari ST are wired in first. Game Boy, SNES, Mega Drive and GBA are parked as proper next modules, not half-broken goblins.</p>
+      <strong>Fullscreen system launcher.</strong>
+      <p>NES stays on the stable engine. Atari ST stays on Hatari. Game Boy and GBA are added as Labs modules so we can test them cleanly without breaking the good stuff.</p>
     </section>
 
     <section class="systems-wrap" aria-label="System carousel">
@@ -194,14 +172,14 @@
             <div>
               <div class="status">Ready</div>
               <h2>NES</h2>
-              <p>JSNES stable engine, local library, D Pad and A/B controls.</p>
+              <p>JSNES stable engine, local library, visible file picker, D Pad and A/B controls.</p>
             </div>
             <div class="system-icon">🎮</div>
           </div>
           <div class="screen-mock"><span>8-bit console</span></div>
           <div class="actions">
-            <button class="primary" data-launch="systems/nes/index.html" data-title="TonyNES">Launch</button>
-            <a class="button" href="systems/nes/index.html">Open direct</a>
+            <a class="button primary" href="systems/nes/index.html">Launch</a>
+            <a class="button" href="systems/nes/index.html">Direct</a>
           </div>
         </article>
 
@@ -216,24 +194,40 @@
           </div>
           <div class="screen-mock"><span>16-bit computer</span></div>
           <div class="actions">
-            <button class="primary" data-launch="systems/atari-st/index.html" data-title="TonyST">Launch</button>
-            <a class="button" href="systems/atari-st/index.html">Open direct</a>
+            <a class="button primary" href="systems/atari-st/index.html">Launch</a>
+            <a class="button" href="systems/atari-st/index.html">Direct</a>
           </div>
         </article>
 
-        <article class="card soon">
+        <article class="card gb">
           <div class="card-head">
             <div>
-              <div class="status">Coming next</div>
+              <div class="status">Labs</div>
               <h2>Game Boy</h2>
-              <p>Perfect next module. Same D Pad layout, smaller screen shape.</p>
+              <p>GB and GBC test module using a direct EmulatorJS player and local library.</p>
             </div>
             <div class="system-icon">🟩</div>
           </div>
           <div class="screen-mock"><span>GB / GBC</span></div>
           <div class="actions">
-            <button disabled>Coming soon</button>
-            <button disabled>Library later</button>
+            <a class="button primary" href="systems/game-boy/index.html">Launch</a>
+            <a class="button" href="systems/game-boy/index.html">Direct</a>
+          </div>
+        </article>
+
+        <article class="card gba">
+          <div class="card-head">
+            <div>
+              <div class="status">Labs</div>
+              <h2>GBA</h2>
+              <p>Game Boy Advance test module. Larger files, so test one simple ROM first.</p>
+            </div>
+            <div class="system-icon">🟪</div>
+          </div>
+          <div class="screen-mock"><span>32-bit handheld</span></div>
+          <div class="actions">
+            <a class="button primary" href="systems/gba/index.html">Launch</a>
+            <a class="button" href="systems/gba/index.html">Direct</a>
           </div>
         </article>
 
@@ -244,13 +238,10 @@
               <h2>SNES</h2>
               <p>Needs A/B/X/Y plus L/R, so it gets its own controller skin.</p>
             </div>
-            <div class="system-icon">🟪</div>
+            <div class="system-icon">🟦</div>
           </div>
           <div class="screen-mock"><span>16-bit console</span></div>
-          <div class="actions">
-            <button disabled>Coming soon</button>
-            <button disabled>Labs first</button>
-          </div>
+          <div class="actions"><button disabled>Coming soon</button><button disabled>Labs first</button></div>
         </article>
 
         <article class="card soon">
@@ -263,56 +254,12 @@
             <div class="system-icon">⚡</div>
           </div>
           <div class="screen-mock"><span>16-bit console</span></div>
-          <div class="actions">
-            <button disabled>Coming soon</button>
-            <button disabled>Labs first</button>
-          </div>
+          <div class="actions"><button disabled>Coming soon</button><button disabled>Labs first</button></div>
         </article>
       </div>
     </section>
 
     <p class="footer">No ROMs are included. Import your own local files privately inside each system module.</p>
   </main>
-
-  <section class="module-view" id="moduleView" hidden>
-    <div class="module-bar">
-      <button id="backButton" type="button">← Systems</button>
-      <div class="module-title" id="moduleTitle">TonyRetro</div>
-      <a class="button" id="directLink" href="#">Direct</a>
-    </div>
-    <iframe class="module-frame" id="moduleFrame" title="TonyRetro system module" allow="gamepad; fullscreen; autoplay"></iframe>
-  </section>
-
-  <script>
-    (() => {
-      const moduleView = document.getElementById("moduleView");
-      const moduleFrame = document.getElementById("moduleFrame");
-      const moduleTitle = document.getElementById("moduleTitle");
-      const directLink = document.getElementById("directLink");
-      const backButton = document.getElementById("backButton");
-
-      function launch(path, title) {
-        moduleTitle.textContent = title || "TonyRetro";
-        directLink.href = path;
-        moduleFrame.src = path + (path.includes("?") ? "&" : "?") + "from=tonyretro&t=" + Date.now();
-        moduleView.hidden = false;
-      }
-
-      function closeModule() {
-        moduleView.hidden = true;
-        moduleFrame.src = "about:blank";
-      }
-
-      document.querySelectorAll("[data-launch]").forEach((button) => {
-        button.addEventListener("click", () => launch(button.dataset.launch, button.dataset.title));
-      });
-
-      backButton.addEventListener("click", closeModule);
-
-      window.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && !moduleView.hidden) closeModule();
-      });
-    })();
-  </script>
 </body>
 </html>

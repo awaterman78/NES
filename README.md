@@ -1,37 +1,40 @@
-TonyRetro Multi Emulator v0.1
+TonyRetro Multi Emulator v0.2
 
-Upload everything in this folder to the root of a GitHub Pages repo.
+This does 1 to 3 from the plan:
+1. Layout fix, systems now launch directly instead of being trapped inside an iframe wrapper.
+2. Game Boy / Game Boy Color Labs module added.
+3. Game Boy Advance Labs module added.
 
-Files included:
-- index.html, the TonyRetro system carousel launcher
+Upload the CONTENTS of this folder to the root of your GitHub Pages repo:
+- index.html
 - manifest.webmanifest
 - .nojekyll
-- systems/nes/index.html
-- systems/atari-st/index.html
-- systems/atari-st/tonyst.html
-- engine/hatari/PUT_HATARI_FILES_HERE.txt
+- systems/
+- engine/
+
+Do not upload:
+- the zip itself
+- the containing TonyRetro_Multi_Emulator_v0_2 folder
 
 NES:
-- Uses the stable JSNES route, not the broken EmulatorJS test.
-- Has a local library.
-- Uses a visible native file picker to avoid iPhone greying out .nes files.
-- No ROMs are included.
+- Stable JSNES version, visible file picker, local library.
 
 Atari ST:
-- Uses the existing TonyST Hatari module.
-- You must copy your Hatari engine files into:
+- Uses your TonyST Hatari module.
+- Copy your existing Hatari files to:
   engine/hatari/hatari.js
   engine/hatari/hatari.wasm
   engine/hatari/hatari.data
 
-If you already have those files in your current repo, keep them there. Do not move them.
+Game Boy / Game Boy Color:
+- Labs module using EmulatorJS direct.
+- Test with .gb first, then .gbc.
 
-GitHub Pages:
-- Upload the contents of the TonyRetro_Multi_Emulator_v0_1 folder, not the zip and not the folder itself.
-- Make sure index.html is in the repo root.
-- Make sure .nojekyll is in the repo root.
-- Open your Pages URL and add to iPhone Home Screen.
+Game Boy Advance:
+- Labs module using EmulatorJS direct.
+- Test with a small .gba file first.
 
-Legal:
-- No commercial ROMs or copyrighted BIOS files are included.
-- Import your own local files privately inside each system module.
+Honest bit:
+NES and Atari ST are the proven modules.
+GB/GBC and GBA are Labs modules because web cores can be fussy on iPhone.
+No ROMs or copyrighted BIOS files are included.
